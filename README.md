@@ -1,1 +1,3 @@
-Advent of Code 2023
+# Advent of Code 2023
+
+Run `node ./main.js` to run the code.
