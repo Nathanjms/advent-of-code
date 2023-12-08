@@ -1,15 +1,15 @@
-// Loop through each line of input.txt and print to console:
-var fs = require("fs");
+import fs from "fs";
 
-partOne();
-partTwo();
+const inputPath = "./day1/input.txt";
 
-function partOne(input = "input.txt") {
-  var input = fs.readFileSync(input, "utf8");
+export function partOne() {
+  var input = fs.readFileSync(inputPath, "utf8");
   var inputArray = input.trim().split("\n");
   const sum = inputArray.reduce((sum, line) => {
     return sum + getDigitsFromLine(line);
   }, 0);
+
+  console.log("sum :", sum);
 
   function getDigitsFromLine(line) {
     let leftIndex = 0;
@@ -38,17 +38,9 @@ function partOne(input = "input.txt") {
     // concat the digits together and return the result
     return Number(leftDigit.toString() + rightDigit.toString());
   }
-
-  console.log("sum: ", sum);
 }
 
-/**
- * part Two
- *
- * Now it could be either words or the digit for each number
- * @param {*} input
- */
-function partTwo(input = "input.txt") {
+export function partTwo() {
   const wordMap = {
     one: 1,
     two: 2,
@@ -61,7 +53,7 @@ function partTwo(input = "input.txt") {
     nine: 9,
   };
 
-  var input = fs.readFileSync(input, "utf8");
+  var input = fs.readFileSync(inputPath, "utf8");
   var inputArray = input.trim().split("\n");
 
   const sum = inputArray.reduce((sum, line) => {
