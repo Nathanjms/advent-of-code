@@ -22,10 +22,10 @@ export function partOne() {
       while (!hasSymbol && digitIndex < digits.length) {
         // Get the coordinates surrounding the digit:
         const coordinates = getCoordinatesAroundPoint(
-          rowIndex,
           match.index + digitIndex,
-          inputArray.length,
-          line.length
+          rowIndex,
+          line.length,
+          inputArray.length
         );
         // Check if any of these coordinates have a symbol:
         for (const coordinate of coordinates) {
@@ -66,28 +66,28 @@ export function partTwo() {
     const numbersByFirstCoordinate = {};
     [...matches].forEach((match) => {
       // Get the coordinates surrounding the *:
-      const coordinates = getCoordinatesAroundPoint(rowIndex, match.index, inputArray.length, line.length);
+      const coordinates = getCoordinatesAroundPoint(match.index, rowIndex, line.length, inputArray.length);
       // Check if any of these coordinates have a number:
       for (const coordinate of coordinates) {
         if (inputArray[coordinate[0]][coordinate[1]].match(/\d/)) {
           // If we have a digit, we need to get the full number from it by going left and right until there is not a digit:
-          let leftDigitIndex = coordinate[1] - 1;
+          let leftDigitIndex = coordinate[0] - 1;
           let number = inputArray[coordinate[0]][coordinate[1]];
           // Go left:
-          while (leftDigitIndex >= 0 && inputArray[coordinate[0]][leftDigitIndex].match(/\d/)) {
-            number = inputArray[coordinate[0]][leftDigitIndex].toString() + number.toString();
+          while (leftDigitIndex >= 0 && inputArray[leftDigitIndex][coordinate[1]].match(/\d/)) {
+            number = inputArray[leftDigitIndex][coordinate[1]].toString() + number.toString();
             leftDigitIndex--;
           }
           // Go right:
-          let rightDigitIndex = coordinate[1] + 1;
-          while (rightDigitIndex < line.length && inputArray[coordinate[0]][rightDigitIndex].match(/\d/)) {
-            number = number.toString() + inputArray[coordinate[0]][rightDigitIndex].toString();
+          let rightDigitIndex = coordinate[0] + 1;
+          while (rightDigitIndex < line.length && inputArray[rightDigitIndex][coordinate[1]].match(/\d/)) {
+            number = number.toString() + inputArray[rightDigitIndex][coordinate[1]].toString();
             rightDigitIndex++;
           }
 
           // If this number is not already in the list, add it:
-          if (!numbersByFirstCoordinate.hasOwnProperty((leftDigitIndex + 1).toString())) {
-            numbersByFirstCoordinate[(leftDigitIndex + 1).toString()] = Number(number);
+          if (!numbersByFirstCoordinate.hasOwnProperty((leftDigitIndex + 1).toString() + "," + coordinate[1])) {
+            numbersByFirstCoordinate[(leftDigitIndex + 1).toString() + "," + coordinate[1]] = Number(number);
           }
         }
       }
@@ -111,15 +111,18 @@ export function partTwo() {
 }
 
 function getCoordinatesAroundPoint(i, j, maxI, maxJ) {
-  const coordinates = [];
+  let coordinates = [];
   // 8 Possible coordinates around a point, loop these and check if they are valid:
   for (let x = i - 1; x <= i + 1; x++) {
     for (let y = j - 1; y <= j + 1; y++) {
-      // If the coordinate is valid, add it to the list:
-      if (x >= 0 && x < maxI && y >= 0 && y < maxJ) {
-        coordinates.push([x, y]);
-      }
+      coordinates.push([y, x]);
     }
   }
+
+  // Filter out any coordinates that are out of bounds or the coordinate itself:
+  coordinates = coordinates
+    .filter((coordinate) => coordinate[0] >= 0 && coordinate[0] < maxJ && coordinate[1] >= 0 && coordinate[1] < maxI)
+    .filter((coordinate) => !(coordinate[0] === j && coordinate[1] === i));
+
   return coordinates;
 }
