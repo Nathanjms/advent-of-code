@@ -6,3 +6,4 @@ dayOne.partOne();
 dayOne.partTwo();
 console.log("--------------------");
 dayTwo.partOne();
+dayTwo.partTwo();

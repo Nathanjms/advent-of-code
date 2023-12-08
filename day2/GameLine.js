@@ -3,7 +3,7 @@ export default class GameLine {
     this.line = line;
   }
 
-  getMaxPossiblePerColor() {
+  getMinPossiblePerColor() {
     const colors = ["blue", "red", "green"];
     const colorCounts = colors.map((color) => {
       return this.getCountForColor(color);
