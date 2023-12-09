@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const inputPath = "./day3/input";
+const inputPath = "./day3/example-input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
@@ -22,10 +22,10 @@ export function partOne() {
       while (!hasSymbol && digitIndex < digits.length) {
         // Get the coordinates surrounding the digit:
         const coordinates = getCoordinatesAroundPoint(
-          match.index + digitIndex,
           rowIndex,
-          line.length,
-          inputArray.length
+          match.index + digitIndex,
+          inputArray.length,
+          line.length
         );
         // Check if any of these coordinates have a symbol:
         for (const coordinate of coordinates) {
@@ -66,28 +66,28 @@ export function partTwo() {
     const numbersByFirstCoordinate = {};
     [...matches].forEach((match) => {
       // Get the coordinates surrounding the *:
-      const coordinates = getCoordinatesAroundPoint(match.index, rowIndex, line.length, inputArray.length);
+      const coordinates = getCoordinatesAroundPoint(rowIndex, match.index, inputArray.length, line.length);
       // Check if any of these coordinates have a number:
       for (const coordinate of coordinates) {
         if (inputArray[coordinate[0]][coordinate[1]].match(/\d/)) {
           // If we have a digit, we need to get the full number from it by going left and right until there is not a digit:
-          let leftDigitIndex = coordinate[0] - 1;
+          let leftDigitIndex = coordinate[1] - 1;
           let number = inputArray[coordinate[0]][coordinate[1]];
           // Go left:
-          while (leftDigitIndex >= 0 && inputArray[leftDigitIndex][coordinate[1]].match(/\d/)) {
-            number = inputArray[leftDigitIndex][coordinate[1]].toString() + number.toString();
+          while (leftDigitIndex >= 0 && inputArray[coordinate[0]][leftDigitIndex].match(/\d/)) {
+            number = inputArray[coordinate[0]][leftDigitIndex].toString() + number.toString();
             leftDigitIndex--;
           }
           // Go right:
-          let rightDigitIndex = coordinate[0] + 1;
-          while (rightDigitIndex < line.length && inputArray[rightDigitIndex][coordinate[1]].match(/\d/)) {
-            number = number.toString() + inputArray[rightDigitIndex][coordinate[1]].toString();
+          let rightDigitIndex = coordinate[1] + 1;
+          while (rightDigitIndex < line.length && inputArray[coordinate[0]][rightDigitIndex].match(/\d/)) {
+            number = number.toString() + inputArray[coordinate[0]][rightDigitIndex].toString();
             rightDigitIndex++;
           }
 
           // If this number is not already in the list, add it:
-          if (!numbersByFirstCoordinate.hasOwnProperty((leftDigitIndex + 1).toString() + "," + coordinate[1])) {
-            numbersByFirstCoordinate[(leftDigitIndex + 1).toString() + "," + coordinate[1]] = Number(number);
+          if (!numbersByFirstCoordinate.hasOwnProperty((leftDigitIndex + 1).toString())) {
+            numbersByFirstCoordinate[(leftDigitIndex + 1).toString()] = Number(number);
           }
         }
       }
@@ -110,19 +110,26 @@ export function partTwo() {
   );
 }
 
+/**
+ *
+ * @param {int} i The Row Index
+ * @param {int} j The Column Index
+ * @param {int} maxI The maximum row index
+ * @param {int} maxJ The maximum column index
+ * @returns The coordinates around the point, not as (x,y) but as (row,col)
+ */
 function getCoordinatesAroundPoint(i, j, maxI, maxJ) {
-  let coordinates = [];
+  const coordinates = [];
   // 8 Possible coordinates around a point, loop these and check if they are valid:
-  for (let x = i - 1; x <= i + 1; x++) {
-    for (let y = j - 1; y <= j + 1; y++) {
-      coordinates.push([y, x]);
+  for (let rowIndex = i - 1; rowIndex <= i + 1; rowIndex++) {
+    for (let colIndex = j - 1; colIndex <= j + 1; colIndex++) {
+      // If the coordinate is valid, add it to the list:
+      coordinates.push([rowIndex, colIndex]);
     }
   }
 
-  // Filter out any coordinates that are out of bounds or the coordinate itself:
-  coordinates = coordinates
-    .filter((coordinate) => coordinate[0] >= 0 && coordinate[0] < maxJ && coordinate[1] >= 0 && coordinate[1] < maxI)
-    .filter((coordinate) => !(coordinate[0] === j && coordinate[1] === i));
-
-  return coordinates;
+  // Filter out invalid coordinates (itself, or out of bounds)
+  return coordinates
+    .filter((coordinate) => coordinate[0] >= 0 && coordinate[0] < maxI && coordinate[1] >= 0 && coordinate[1] < maxJ)
+    .filter((coordinate) => !(coordinate[0] === i && coordinate[1] === j));
 }
