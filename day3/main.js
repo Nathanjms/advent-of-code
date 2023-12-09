@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const inputPath = "./day3/example-input";
+const inputPath = "./day3/input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
@@ -63,8 +63,8 @@ export function partTwo() {
     // Get the *'s on this line:
     let matches = line.matchAll(/\*/g);
 
-    const numbersByFirstCoordinate = {};
     [...matches].forEach((match) => {
+      const numbersByFirstCoordinate = {};
       // Get the coordinates surrounding the *:
       const coordinates = getCoordinatesAroundPoint(rowIndex, match.index, inputArray.length, line.length);
       // Check if any of these coordinates have a number:
@@ -86,23 +86,22 @@ export function partTwo() {
           }
 
           // If this number is not already in the list, add it:
-          if (!numbersByFirstCoordinate.hasOwnProperty((leftDigitIndex + 1).toString())) {
-            numbersByFirstCoordinate[(leftDigitIndex + 1).toString()] = Number(number);
+          if (
+            !numbersByFirstCoordinate.hasOwnProperty(coordinate[0].toString() + "," + (leftDigitIndex + 1).toString())
+          ) {
+            numbersByFirstCoordinate[coordinate[0].toString() + "," + (leftDigitIndex + 1).toString()] = Number(number);
           }
         }
       }
+      // if there are exactly two numbers, add their product to the list:
+      if (Object.keys(numbersByFirstCoordinate).length === 2) {
+        gearRatios.push(
+          numbersByFirstCoordinate[Object.keys(numbersByFirstCoordinate)[0]] *
+            numbersByFirstCoordinate[Object.keys(numbersByFirstCoordinate)[1]]
+        );
+      }
     });
-
-    // if there are exactly two numbers, add their product to the list:
-    if (Object.keys(numbersByFirstCoordinate).length === 2) {
-      gearRatios.push(
-        numbersByFirstCoordinate[Object.keys(numbersByFirstCoordinate)[0]] *
-          numbersByFirstCoordinate[Object.keys(numbersByFirstCoordinate)[1]]
-      );
-    }
   }
-
-  console.log({ gearRatios });
 
   console.log(
     "Sum: ",

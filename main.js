@@ -10,4 +10,4 @@ dayTwo.partOne();
 dayTwo.partTwo();
 console.log("---------Day 3-----------");
 dayThree.partOne();
-// dayThree.partTwo();
+dayThree.partTwo();
