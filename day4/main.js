@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const inputPath = "./day4/input";
+const inputPath = "./day4/example-input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
@@ -20,28 +20,6 @@ export function partOne() {
     }
   });
 
-  function extractLineInfo(line) {
-    const regex = /Card\s+(\d+):(.*)\|(.*)/;
-    const match = line.match(regex);
-    return {
-      id: match[1],
-      winningNumbers: new Set(
-        match[2]
-          .trim()
-          .split(" ")
-          .filter((number) => number !== "")
-          .map((number) => Number(number))
-      ),
-      userNumbers: new Set(
-        match[3]
-          .trim()
-          .split(" ")
-          .filter((number) => number !== "")
-          .map((number) => Number(number))
-      ),
-    };
-  }
-
   console.log("sum :", sum);
 }
 
@@ -49,7 +27,46 @@ export function partTwo() {
   var input = fs.readFileSync(inputPath, "utf8");
   var inputArray = input.trim().split("\n");
 
-  let sum = 0;
+  // Build quantity for each line, each starting at 1:
+  let quantity = inputArray.map((line) => 1);
 
-  console.log("sum :", sum);
+  for (let i = 0; i < inputArray.length; i++) {
+    const { winningNumbers, userNumbers } = extractLineInfo(inputArray[i]);
+
+    // Get the number of matching numbers. We only need to do this once per line
+    const matchingNumberQuantity = new Set([...winningNumbers].filter((x) => userNumbers.has(x))).size;
+
+    // For the quantity of this line, we need to add cards to the next x, where x is the matching number quantity
+    for (let j = 1; j <= matchingNumberQuantity; j++) {
+      // Add the quantity of this line to the next line(s)
+      quantity[i + j] += quantity[i];
+    }
+  }
+
+  console.log(
+    "sum :",
+    quantity.reduce((a, b) => a + b, 0)
+  );
+}
+
+function extractLineInfo(line) {
+  const regex = /Card\s+(\d+):(.*)\|(.*)/;
+  const match = line.match(regex);
+  return {
+    id: match[1],
+    winningNumbers: new Set(
+      match[2]
+        .trim()
+        .split(" ")
+        .filter((number) => number !== "")
+        .map((number) => Number(number))
+    ),
+    userNumbers: new Set(
+      match[3]
+        .trim()
+        .split(" ")
+        .filter((number) => number !== "")
+        .map((number) => Number(number))
+    ),
+  };
 }

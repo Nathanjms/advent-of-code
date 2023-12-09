@@ -14,3 +14,4 @@ dayThree.partOne();
 dayThree.partTwo();
 console.log("---------Day 4-----------");
 dayFour.partOne();
+dayFour.partTwo();
