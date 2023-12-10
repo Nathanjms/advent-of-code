@@ -10,9 +10,18 @@ export function partOne() {
 
   console.log({ "valueOfCategory: ": almanac.getValueOfCategory("seed", 79, "location") });
 
-  let sum = 0;
+  let minValue = Infinity;
 
-  console.log("sum :", sum);
+  const startCategory = "seed";
+  const endCategory = "location";
+  for (let seedId of almanac.getSeedNumbers()) {
+    let valFromSeed = almanac.getValueOfCategory(startCategory, seedId, endCategory);
+    if (valFromSeed < minValue) {
+      minValue = valFromSeed;
+    }
+  }
+
+  console.log("Min Value :", minValue);
 }
 
 export function partTwo() {

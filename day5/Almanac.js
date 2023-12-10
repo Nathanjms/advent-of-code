@@ -10,7 +10,6 @@ export default class Almanac {
   }
 
   getValuesInMap(map) {
-    console.log(map);
     let rowIndex;
     // Find the row Index that has the map as its title:
     for (let i = 0; i < this.contents.length; i++) {
