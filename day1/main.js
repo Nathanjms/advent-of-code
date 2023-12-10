@@ -9,7 +9,7 @@ export function partOne() {
     return sum + getDigitsFromLine(line);
   }, 0);
 
-  console.log("sum :", sum);
+  console.log({ day: 1, part: 1, value: sum });
 
   function getDigitsFromLine(line) {
     let leftIndex = 0;
@@ -60,7 +60,7 @@ export function partTwo() {
     return sum + getDigitsFromLine(line);
   }, 0);
 
-  console.log("sum :", sum);
+  console.log({ day: 1, part: 2, value: sum });
 
   function getDigitsFromLine(line) {
     return Number(getFirstNumber(line).toString() + getLastNumber(line).toString());

@@ -20,7 +20,7 @@ export function partOne() {
     }
   });
 
-  console.log("sum :", sum);
+  console.log({ day: 4, part: 1, value: sum });
 }
 
 export function partTwo() {
@@ -43,10 +43,7 @@ export function partTwo() {
     }
   }
 
-  console.log(
-    "sum :",
-    quantity.reduce((a, b) => a + b, 0)
-  );
+  console.log({ day: 4, part: 2, value: quantity.reduce((a, b) => a + b, 0) });
 }
 
 function extractLineInfo(line) {

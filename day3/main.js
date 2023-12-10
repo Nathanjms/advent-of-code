@@ -45,10 +45,7 @@ export function partOne() {
   }
 
   // We could sum as we go, but this helps with debugging, so reduce the array to a sum:
-  console.log(
-    "Sum: ",
-    numbersToUse.reduce((a, b) => a + b, 0)
-  );
+  console.log({ day: 3, part: 1, value: numbersToUse.reduce((a, b) => a + b, 0) });
 }
 
 export function partTwo() {
@@ -103,10 +100,7 @@ export function partTwo() {
     });
   }
 
-  console.log(
-    "Sum: ",
-    gearRatios.reduce((a, b) => a + b, 0)
-  );
+  console.log({ day: 3, part: 2, value: gearRatios.reduce((a, b) => a + b, 0) });
 }
 
 /**

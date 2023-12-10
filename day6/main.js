@@ -22,9 +22,6 @@ export function partOne() {
       }
     }
   }
-
-  console.log({ time, recordDistance, possibilitiesPerGame });
-
   console.log({ day: 6, part: 1, value: possibilitiesPerGame.reduce((a, b) => a * b, 1) });
 }
 
@@ -34,7 +31,6 @@ export function partTwo() {
 
   const time = Number(inputArray[0].substring(5).replaceAll(" ", ""));
   const recordDistance = Number(inputArray[1].substring(9).replaceAll(" ", ""));
-  console.log({ time, recordDistance });
 
   /**
    * Now the numbers are much bigger, we can optimise this a bit. Let's do the following:
@@ -65,5 +61,5 @@ export function partTwo() {
       }
     }
   }
-  console.log({ day: 6, part: 2, value: rightIndex - leftIndex + 1});
+  console.log({ day: 6, part: 2, value: rightIndex - leftIndex + 1 });
 }

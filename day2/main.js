@@ -32,7 +32,7 @@ export function partOne() {
     }
   });
 
-  console.log("sumOfValidIds :", sumOfValidIds);
+  console.log({ day: 2, part: 1, value: sumOfValidIds });
 }
 
 export function partTwo() {
@@ -51,5 +51,5 @@ export function partTwo() {
     sum += powerOfCubes;
   });
 
-  console.log("sum :", sum);
+  console.log({ day: 2, part: 2, value: sum });
 }

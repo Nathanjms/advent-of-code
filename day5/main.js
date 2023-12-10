@@ -20,7 +20,7 @@ export function partOne() {
     }
   }
 
-  console.log("Min Value:", minValue);
+  console.log({ day: 5, part: 1, value: minValue });
 }
 
 export function partTwo() {
@@ -60,8 +60,7 @@ export function partTwo() {
     locationNumber++;
   }
 
-  console.log({ seedNumber });
-  console.log("Min Location Number:", locationNumber - 1);
+  console.log({ day: 5, part: 2, value: locationNumber - 1 });
 
   /**
    * Determines if the given number is in the range of any of the seed ranges
