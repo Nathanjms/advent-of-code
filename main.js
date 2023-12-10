@@ -22,3 +22,4 @@ dayFive.partOne();
 // dayFive.partTwo(); // This takes ages so wil comment out
 console.log("---------Day 6-----------");
 daySix.partOne();
+daySix.partTwo();

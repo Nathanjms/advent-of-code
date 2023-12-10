@@ -30,4 +30,40 @@ export function partOne() {
 
 export function partTwo() {
   var input = fs.readFileSync(inputPath, "utf8");
+  var inputArray = input.trim().split("\n");
+
+  const time = Number(inputArray[0].substring(5).replaceAll(" ", ""));
+  const recordDistance = Number(inputArray[1].substring(9).replaceAll(" ", ""));
+  console.log({ time, recordDistance });
+
+  /**
+   * Now the numbers are much bigger, we can optimise this a bit. Let's do the following:
+   * Go from both left and right, and stop for each one once we have beaten the record!
+   */
+
+  let leftValue, rightValue;
+  let leftIndex = 1;
+  let rightIndex = time;
+
+  while (!(leftValue && rightValue) && leftIndex < rightIndex) {
+    // if we haven't found the match for the left side yet, lets check then add one to the index
+    if (!leftValue) {
+      let timeRemaining = time - leftIndex;
+      if (timeRemaining * leftIndex > recordDistance) {
+        leftValue = leftIndex;
+      } else {
+        leftIndex++;
+      }
+    }
+    // Similar for the right side
+    if (!rightValue) {
+      let timeRemaining = time - rightIndex;
+      if (timeRemaining * rightIndex > recordDistance) {
+        rightValue = rightIndex;
+      } else {
+        rightIndex--;
+      }
+    }
+  }
+  console.log({ day: 6, part: 2, value: rightIndex - leftIndex + 1});
 }
