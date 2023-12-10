@@ -1,7 +1,7 @@
 import fs from "fs";
 import Almanac from "./Almanac.js";
 
-const inputPath = "./day5/input";
+const inputPath = "./day5/example-input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");

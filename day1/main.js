@@ -1,9 +1,9 @@
 import fs from "fs";
 
-const inputPath = "./day1/input.txt";
+const inputPath = "./day1/example-input";
 
 export function partOne() {
-  var input = fs.readFileSync(inputPath, "utf8");
+  var input = fs.readFileSync(inputPath + "1", "utf8");
   var inputArray = input.trim().split("\n");
   const sum = inputArray.reduce((sum, line) => {
     return sum + getDigitsFromLine(line);
@@ -12,12 +12,13 @@ export function partOne() {
   console.log({ day: 1, part: 1, value: sum });
 
   function getDigitsFromLine(line) {
+    console.log(line);
     let leftIndex = 0;
     let rightIndex = line.length - 1;
     let leftDigit = null;
     let rightDigit = null;
     // Go from the left until you find a digit:
-    while (leftDigit === null) {
+    while (leftDigit === null && leftIndex <= line.length) {
       // If is a digit, set leftDigit to that digit
       if (!isNaN(line[leftIndex])) {
         leftDigit = line[leftIndex];
@@ -26,7 +27,7 @@ export function partOne() {
       leftIndex++;
     }
 
-    while (rightDigit === null) {
+    while (rightDigit === null && rightIndex >= 0) {
       // If is a digit, set rightDigit to that digit
       if (!isNaN(line[rightIndex])) {
         rightDigit = line[rightIndex];
@@ -53,7 +54,7 @@ export function partTwo() {
     nine: 9,
   };
 
-  var input = fs.readFileSync(inputPath, "utf8");
+  var input = fs.readFileSync(inputPath + "2", "utf8");
   var inputArray = input.trim().split("\n");
 
   const sum = inputArray.reduce((sum, line) => {
