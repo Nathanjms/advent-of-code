@@ -10,10 +10,10 @@ export default class Almanac {
   }
 
   getValuesInMap(map) {
+    console.log(map);
     let rowIndex;
     // Find the row Index that has the map as its title:
     for (let i = 0; i < this.contents.length; i++) {
-      console.log(i);
       if (this.contentsByLine[i]?.match(map)) {
         // We've found the start!
         rowIndex = i;
@@ -42,7 +42,7 @@ export default class Almanac {
 
   parseMapLine(mapLine) {
     // Example Input: '50 98 2'
-    let [input, output, length] = mapLine.split(" ").map((n) => Number(n));
+    let [output, input, length] = mapLine.split(" ").map((n) => Number(n));
     return { input, output, length };
   }
 
@@ -57,16 +57,20 @@ export default class Almanac {
     const endIndex = this.CATEGORIES_BY_ORDER.indexOf(endCategory);
     let value = startValue;
     for (let i = startIndex; i < endIndex; i++) {
-      let mapTitle = `${this.CATEGORIES_BY_ORDER[i]}-${this.CATEGORIES_BY_ORDER[i + 1]} map:`;
+      let mapTitle = `${this.CATEGORIES_BY_ORDER[i]}-to-${this.CATEGORIES_BY_ORDER[i + 1]} map:`;
 
       let mapValues = this.getValuesInMap(mapTitle);
       // Find out which it is by it's input, then use that output
       for (const map of mapValues) {
-        if (value >= map.input || value < map.input + length) {
-          return map.output + (value - input);
-          // TODO: This needs account for the loop!!!!
+        // If the value is within the range of the map, then get the actual new number out
+        if (value >= map.input && value < map.input + map.length) {
+          // The value becomes the output value + the difference between the 
+          value = map.output + (value - map.input);
+          break;
         }
       }
     }
+
+    return value;
   }
 }

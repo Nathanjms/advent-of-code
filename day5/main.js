@@ -8,9 +8,7 @@ export function partOne() {
 
   const almanac = new Almanac(input);
 
-  console.log(almanac.getSeedNumbers());
-  console.log(almanac.getValuesInMap("seed-to-soil map:"));
-  console.log(almanac.getValueOfCategory('seed', 50, 'soil'));
+  console.log({ "valueOfCategory: ": almanac.getValueOfCategory("seed", 79, "location") });
 
   let sum = 0;
 
