@@ -77,26 +77,3 @@ export function partTwo() {
     return false;
   }
 }
-
-export function partTwoAttemptTwo() {
-  var input = fs.readFileSync(inputPath, "utf8");
-
-  const almanac = new Almanac(input);
-  const seedNumbers = almanac.getSeedNumbers();
-
-  const seedRanges = [];
-  for (let i = 0; i < seedNumbers.length; i += 2) {
-    seedRanges.push({
-      start: seedNumbers[i],
-      range: seedNumbers[i + 1],
-    });
-  }
-
-  console.log(seedRanges);
-
-  let valuesPerMap = almanac.getValuesForAllMaps();
-  let valuesPerMapAlt = almanac.getValuesForEachMap();
-
-  console.dir(valuesPerMap);
-  console.dir(valuesPerMapAlt);
-}

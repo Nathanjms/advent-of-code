@@ -3,6 +3,7 @@ import * as dayTwo from "./day2/main.js";
 import * as dayThree from "./day3/main.js";
 import * as dayFour from "./day4/main.js";
 import * as dayFive from "./day5/main.js";
+import * as daySix from "./day6/main.js";
 
 console.log("---------Day 1-----------");
 dayOne.partOne();
@@ -18,4 +19,6 @@ dayFour.partOne();
 dayFour.partTwo();
 console.log("---------Day 5-----------");
 dayFive.partOne();
-dayFive.partTwo();
+// dayFive.partTwo(); // This takes ages so wil comment out
+console.log("---------Day 6-----------");
+daySix.partOne();
