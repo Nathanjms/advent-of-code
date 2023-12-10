@@ -1,15 +1,17 @@
 export default class Almanac {
   CATEGORIES_BY_ORDER = ["seed", "soil", "fertilizer", "water", "light", "temperature", "humidity", "location"];
+  valuesPerMap;
   constructor(contents) {
     this.contents = contents.trim();
     this.contentsByLine = this.contents.split("\n");
+    this.setValuesForAllMaps();
   }
 
   getSeedNumbers() {
     return [...this.contentsByLine[0].matchAll(/\d+/g)].map((match) => Number(match[0]));
   }
 
-  getValuesInMap(map) {
+  computeValuesInMap(map) {
     let rowIndex;
     // Find the row Index that has the map as its title:
     for (let i = 0; i < this.contents.length; i++) {
@@ -56,11 +58,8 @@ export default class Almanac {
     const endIndex = this.CATEGORIES_BY_ORDER.indexOf(endCategory);
     let value = startValue;
     for (let i = startIndex; i < endIndex; i++) {
-      let mapTitle = `${this.CATEGORIES_BY_ORDER[i]}-to-${this.CATEGORIES_BY_ORDER[i + 1]} map:`;
-
-      let mapValues = this.getValuesInMap(mapTitle);
       // Find out which it is by it's input, then use that output
-      for (const map of mapValues) {
+      for (const map of this.valuesPerMap[i]) {
         // If the value is within the range of the map, then get the actual new number out
         if (value >= map.input && value < map.input + map.length) {
           // The value becomes the output value + the difference between the
@@ -73,16 +72,42 @@ export default class Almanac {
     return value;
   }
 
+  setValuesForAllMaps() {
+    const startIndex = 0;
+    const endIndex = this.CATEGORIES_BY_ORDER.length - 1;
+    let valuesForEachMap = [];
+    for (let i = startIndex; i < endIndex; i++) {
+      let mapTitle = `${this.CATEGORIES_BY_ORDER[i]}-to-${this.CATEGORIES_BY_ORDER[i + 1]} map:`;
+
+      let mapValues = this.computeValuesInMap(mapTitle);
+      valuesForEachMap.push([...Object.values(mapValues)]);
+    }
+
+    this.valuesPerMap = valuesForEachMap;
+  }
+
   /**
    * EG. (soil, 10, seed) will look at the map in REVERSE order to determine the value.
    * @param {string} startCategory
-   * @param {int} starValue
+   * @param {int} endValue
    * @param {string} endCategory
    */
-  inverseGetValueOfCategory(startCategory, startValue, endCategory) {}
+  inverseGetValueOfCategory(startCategory, endValue, endCategory) {
+    const startIndex = this.CATEGORIES_BY_ORDER.indexOf(startCategory);
+    const endIndex = this.CATEGORIES_BY_ORDER.indexOf(endCategory);
+    let value = endValue;
+    for (let i = endIndex; i > startIndex; i--) {
+      // Find out which it is by it's output, then use it's input
+      for (const map of this.valuesPerMap[i - 1]) {
+        // If the value is within the range of the map, then get the actual new number out
+        if (value >= map.output && value < map.output + map.length) {
+          // The value becomes the input value + the difference
+          value = map.input + (value - map.output);
+          break;
+        }
+      }
+    }
 
-  getLocationsBySize() {
-    let map = this.getValuesInMap("humidity-to-location map:").sort((a, b) => b.output - a.output);
-    console.log({ map });
+    return value;
   }
 }

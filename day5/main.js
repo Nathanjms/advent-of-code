@@ -1,12 +1,14 @@
 import fs from "fs";
 import Almanac from "./Almanac.js";
 
-const inputPath = "./day5/input";
+const inputPath = "./day5/example-input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
 
   const almanac = new Almanac(input);
+
+  let valFromSeed = almanac.getValueOfCategory("seed", 79, "location");
 
   let minValue = Infinity;
   const startCategory = "seed";
@@ -18,12 +20,10 @@ export function partOne() {
     }
   }
 
-  console.log("Min Value :", minValue);
+  console.log("Min Value:", minValue);
 }
 
 export function partTwo() {
-  var input = fs.readFileSync(inputPath, "utf8");
-
   var input = fs.readFileSync(inputPath, "utf8");
 
   const almanac = new Almanac(input);
@@ -37,17 +37,64 @@ export function partTwo() {
     });
   }
 
-  console.log({ seedRanges });
-
   /**
-   * This is too expensive loopng through the millions of seeds.
+   * This is too expensive looping through the millions of seeds.
    * Maybe we could go backwards from location, starting from the lowest value, and check if that seed is present in any of the ranges?
-   * 1. Order Locations by lowest to highest of their outputs
-   * 2. Loop these until we find a match by reversing the map
+   * Because every number can be a map, I think we need to go from 0 and up, and can't use the locations map.
+   * 1. Start from zero as the 'final output' of location
+   * 2. Trace this back with the inverse map and check if the seed exists in any range
    * 3. The first match is the seed we want!
    */
 
-  let locationsSmallestToLargest = almanac.getLocationsBySize();
+  let seedNumber;
+  // let locationNumber = 253820; // Stopped it here so will start it up here again, whoops
+  // let locationNumber = 41436739;
+  let locationNumber = 0;
+  while (!seedNumber) {
+    console.log({ seedNumber, locationNumber });
+    let possibleSeedNumber = almanac.inverseGetValueOfCategory("seed", locationNumber, "location");
+    if (isNumberInSeedRanges(seedRanges, possibleSeedNumber)) {
+      seedNumber = possibleSeedNumber;
+    }
+    locationNumber++;
+  }
 
-  // console.log("Min Value :", minValue);
+  console.log("Min Location Number:", locationNumber - 1);
+
+  /**
+   * Determines if the given number is in the range of any of the seed ranges
+   * @return {bool}
+   */
+  function isNumberInSeedRanges(seedRanges, possibleSeedNumber) {
+    for (let { start, range } of seedRanges) {
+      // Is the possibleSeedNumber in the range?
+      if (possibleSeedNumber >= start && possibleSeedNumber < start + range) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+export function partTwoAttemptTwo() {
+  var input = fs.readFileSync(inputPath, "utf8");
+
+  const almanac = new Almanac(input);
+  const seedNumbers = almanac.getSeedNumbers();
+
+  const seedRanges = [];
+  for (let i = 0; i < seedNumbers.length; i += 2) {
+    seedRanges.push({
+      start: seedNumbers[i],
+      range: seedNumbers[i + 1],
+    });
+  }
+
+  console.log(seedRanges);
+
+  let valuesPerMap = almanac.getValuesForAllMaps();
+  let valuesPerMapAlt = almanac.getValuesForEachMap();
+
+  console.dir(valuesPerMap);
+  console.dir(valuesPerMapAlt);
 }
