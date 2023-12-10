@@ -1,7 +1,7 @@
 import fs from "fs";
 import Almanac from "./Almanac.js";
 
-const inputPath = "./day5/example-input";
+const inputPath = "./day5/input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
@@ -47,10 +47,11 @@ export function partTwo() {
    */
 
   let seedNumber;
-  // let locationNumber = 253820; // Stopped it here so will start it up here again, whoops
-  // let locationNumber = 41436739;
-  let locationNumber = 0;
-  while (!seedNumber) {
+  /* Will run multiple terminal sessions and update the range for each */
+  let locationNumber = 20_000_000; // Stopped it here so will start it up here again, whoops
+  let end = 50_000_000;
+  // let locationNumber = 0;
+  while (!seedNumber && locationNumber <= end) {
     console.log({ seedNumber, locationNumber });
     let possibleSeedNumber = almanac.inverseGetValueOfCategory("seed", locationNumber, "location");
     if (isNumberInSeedRanges(seedRanges, possibleSeedNumber)) {
@@ -59,6 +60,7 @@ export function partTwo() {
     locationNumber++;
   }
 
+  console.log({ seedNumber });
   console.log("Min Location Number:", locationNumber - 1);
 
   /**
