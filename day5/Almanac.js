@@ -63,7 +63,7 @@ export default class Almanac {
       for (const map of mapValues) {
         // If the value is within the range of the map, then get the actual new number out
         if (value >= map.input && value < map.input + map.length) {
-          // The value becomes the output value + the difference between the 
+          // The value becomes the output value + the difference between the
           value = map.output + (value - map.input);
           break;
         }
@@ -71,5 +71,18 @@ export default class Almanac {
     }
 
     return value;
+  }
+
+  /**
+   * EG. (soil, 10, seed) will look at the map in REVERSE order to determine the value.
+   * @param {string} startCategory
+   * @param {int} starValue
+   * @param {string} endCategory
+   */
+  inverseGetValueOfCategory(startCategory, startValue, endCategory) {}
+
+  getLocationsBySize() {
+    let map = this.getValuesInMap("humidity-to-location map:").sort((a, b) => b.output - a.output);
+    console.log({ map });
   }
 }

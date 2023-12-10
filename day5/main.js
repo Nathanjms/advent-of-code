@@ -1,17 +1,14 @@
 import fs from "fs";
 import Almanac from "./Almanac.js";
 
-const inputPath = "./day5/example-input";
+const inputPath = "./day5/input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
 
   const almanac = new Almanac(input);
 
-  console.log({ "valueOfCategory: ": almanac.getValueOfCategory("seed", 79, "location") });
-
   let minValue = Infinity;
-
   const startCategory = "seed";
   const endCategory = "location";
   for (let seedId of almanac.getSeedNumbers()) {
@@ -27,9 +24,30 @@ export function partOne() {
 export function partTwo() {
   var input = fs.readFileSync(inputPath, "utf8");
 
-  console.log("sum :", 0);
-}
+  var input = fs.readFileSync(inputPath, "utf8");
 
-function getSeedNumbers(lineZero) {
-  return [...lineZero.matchAll(/\d+/g)].map((match) => Number(match[0]));
+  const almanac = new Almanac(input);
+  const seedNumbers = almanac.getSeedNumbers();
+
+  const seedRanges = [];
+  for (let i = 0; i < seedNumbers.length; i += 2) {
+    seedRanges.push({
+      start: seedNumbers[i],
+      range: seedNumbers[i + 1],
+    });
+  }
+
+  console.log({ seedRanges });
+
+  /**
+   * This is too expensive loopng through the millions of seeds.
+   * Maybe we could go backwards from location, starting from the lowest value, and check if that seed is present in any of the ranges?
+   * 1. Order Locations by lowest to highest of their outputs
+   * 2. Loop these until we find a match by reversing the map
+   * 3. The first match is the seed we want!
+   */
+
+  let locationsSmallestToLargest = almanac.getLocationsBySize();
+
+  // console.log("Min Value :", minValue);
 }
