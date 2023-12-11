@@ -1,6 +1,7 @@
 import fs from "fs";
 
-const inputPath = "./day7/example-input";
+// const inputPath = "./day7/example-input";
+const inputPath = "./input";
 
 const HAND_TYPES = {
   HIGH_CARD: 1,
@@ -37,7 +38,7 @@ export function partOne() {
       .substring(0, 5)
       .trim()
       .split("")
-      .sort((a, b) => CARD_VALUE_MAP[b] - CARD_VALUE_MAP[a]);
+    //   .sort((a, b) => CARD_VALUE_MAP[b] - CARD_VALUE_MAP[a]);
     return {
       hand,
       bid: Number(line.substring(6).trim()),
@@ -63,7 +64,9 @@ export function partOne() {
 
   // Total winnings is the rank of the hand * the bid
   for (let i = 0; i < sortedHands.length; i++) {
-    totalWinnings += sortedHands[i].bid * (i + 1);
+    let rank = sortedHands.length - i;
+    sortedHands[i].rank = rank;
+    totalWinnings += sortedHands[i].bid * (sortedHands.length - i);
   }
 
   console.log({ day: 7, part: 1, value: totalWinnings });
