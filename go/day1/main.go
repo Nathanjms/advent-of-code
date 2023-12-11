@@ -8,6 +8,12 @@ import (
 	"unicode"
 )
 
+type Output struct {
+	day   int
+	part  int
+	value any
+}
+
 var inputPath = "./day1/example-input1"
 var contents string
 var contentsArray []string
@@ -29,14 +35,19 @@ func main() {
 
 func partOne() {
 	// For each line, get the digits from the left and right, then add them together
-	// If the digits are the same, add them to the total
 	total := 0
 	for _, line := range contentsArray {
-		digits := getDigitsFromLine(line)
-		total += digits
+		total += getDigitsFromLine(line)
 	}
 
-	fmt.Println(total)
+	output := Output{
+		day:   1,
+		part:  1,
+		value: total,
+	}
+
+	fmt.Println(output)
+	fmt.Printf("% +v\n", output)
 
 }
 
@@ -50,8 +61,7 @@ func getDigitsFromLine(line string) int {
 	for leftDigit == -1 {
 		// If this is a digit, set leftDigit to the value of this digit
 		if unicode.IsDigit(rune(line[leftIndex])) {
-			fmt.Println(line[leftIndex])
-			leftDigit = int(line[leftIndex])
+			leftDigit, _ = strconv.Atoi(string(line[leftIndex]))
 			break
 		}
 		leftIndex++
@@ -60,16 +70,15 @@ func getDigitsFromLine(line string) int {
 	for rightDigit == -1 {
 		// If this is a digit, set leftDigit to the value of this digit
 		if unicode.IsDigit(rune(line[rightIndex])) {
-			fmt.Println(rune(line[rightIndex]))
-			rightDigit = int(line[rightIndex])
+			rightDigit, _ = strconv.Atoi(string(line[rightIndex]))
 			break
 		}
 		rightIndex--
 	}
 
-	fmt.Println(leftDigit, rightDigit)
-
 	combinedInt, _ := strconv.Atoi(strconv.Itoa(leftDigit) + strconv.Itoa(rightDigit))
+
+	fmt.Println(combinedInt)
 	// return the string concatenation of the two digits
 	return combinedInt
 }
