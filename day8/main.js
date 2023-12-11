@@ -1,7 +1,7 @@
 import fs from "fs";
 
-const inputPath = "./day8/example-input2";
-// const inputPath = "./input";
+// const inputPath = "./day8/example-input2";
+const inputPath = "./input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");
