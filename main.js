@@ -23,3 +23,4 @@ daySix.partTwo();
 daySeven.partOne();
 daySeven.partTwo();
 dayEight.partOne();
+dayEight.partTwo();

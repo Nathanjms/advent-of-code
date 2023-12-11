@@ -1,7 +1,7 @@
 import fs from "fs";
 
-// const inputPath = "./day7/example-input";
-const inputPath = "./input";
+const inputPath = "./day7/example-input";
+// const inputPath = "./input";
 
 const HAND_TYPES = {
   HIGH_CARD: 1,

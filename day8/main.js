@@ -1,10 +1,10 @@
 import fs from "fs";
 
-// const inputPath = "./day8/example-input2";
-const inputPath = "./input";
+const inputPath = "./day8/example-input";
+// const inputPath = "./input";
 
 export function partOne() {
-  var input = fs.readFileSync(inputPath, "utf8");
+  var input = fs.readFileSync(inputPath + "2", "utf8");
   var inputArray = input.trim().split("\n");
 
   const { steps, coordinateMap } = parseInput(inputArray);
@@ -30,10 +30,35 @@ export function partOne() {
 }
 
 export function partTwo() {
-  var input = fs.readFileSync(inputPath, "utf8");
+  var input = fs.readFileSync(inputPath + "3", "utf8");
   var inputArray = input.trim().split("\n");
 
-  console.log({ day: 8, part: 1, value: "todo" });
+  const { steps, coordinateMap } = parseInput(inputArray);
+
+  let currentCoordinates = Object.keys(coordinateMap).filter((coordinate) => coordinate[2] === "A"); // All that end with A. We know they are 3 digits long
+  let instructionIndex = 0;
+  let numSteps = 0;
+  while (!allEndInZ(currentCoordinates)) {
+    currentCoordinates = currentCoordinates.map((currentCoordinate) => {
+      const [left, right] = coordinateMap[currentCoordinate];
+      if (steps[instructionIndex] === "L") {
+        return left;
+      } else if (steps[instructionIndex] === "R") {
+        return right;
+      } else {
+        throw new Error("Invalid instruction");
+      }
+    });
+    numSteps++;
+    // Increment instruction index, but if it goes over the length of the steps, reset it to 0 by using modulo
+    instructionIndex = (instructionIndex + 1) % steps.length;
+  }
+
+  console.log({ day: 8, part: 2, value: numSteps });
+
+  function allEndInZ(coordinates) {
+    return coordinates.filter((coordinate) => coordinate[2] === "Z").length === coordinates.length;
+  }
 }
 
 function parseInput(inputArray) {
