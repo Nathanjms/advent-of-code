@@ -20,3 +20,4 @@ import * as daySeven from "./day7/main.js";
 // daySix.partOne();
 // daySix.partTwo();
 daySeven.partOne();
+daySeven.partTwo();
