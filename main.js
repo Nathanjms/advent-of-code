@@ -6,6 +6,7 @@ import * as dayFive from "./day5/main.js";
 import * as daySix from "./day6/main.js";
 import * as daySeven from "./day7/main.js";
 import * as dayEight from "./day8/main.js";
+import * as dayNine from "./day9/main.js";
 
 dayOne.partOne();
 dayOne.partTwo();
@@ -23,4 +24,5 @@ daySix.partTwo();
 daySeven.partOne();
 daySeven.partTwo();
 dayEight.partOne();
-dayEight.partTwo("input");
+dayEight.partTwo();
+dayNine.partOne('input');

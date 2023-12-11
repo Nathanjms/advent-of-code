@@ -94,7 +94,6 @@ export function partTwo(input = null) {
     let result = arr[0];
 
     for (let i = 1; i < arr.length; i++) {
-      console.log({ result });
       result = lcm(result, arr[i]);
     }
 
