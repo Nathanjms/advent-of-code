@@ -27,15 +27,42 @@ export function partOne(input = null) {
   }
 
   console.log({ day: 9, part: 1, value: sum });
+}
 
-  /**
-   * Builds the next line of differences, by taking the difference between each element, then finally removing the last element
-   */
-  function buildNextLine(differences) {
-    return differences[differences.length - 1].map((_, i, arr) => arr[i + 1] - arr[i]).slice(0, -1);
+export function partTwo(input = null) {
+  input = input || inputPath;
+  var input = fs.readFileSync(input, "utf8");
+  var inputArray = input.trim().split("\n");
+
+  let sum = 0;
+
+  for (const line of inputArray) {
+    let differences = [line.split(" ").map(Number)];
+    do {
+      differences.push(buildNextLine(differences));
+    } while (lastRowIsNotAllZeros(differences));
+
+    // Now we work from the 2nd-from-bottom sequence, and add on an extra element AT THE START, which is the current first element - the value in the row 'below''s first element:
+    for (let i = differences.length - 2; i >= 0; i--) {
+      const thisLine = differences[i];
+      const lastLine = differences[i + 1];
+      thisLine.unshift(thisLine[0] - lastLine[0]);
+    }
+
+    // Add the first element in the first line of differences (the original) to the sum:
+    sum += differences[0][0];
   }
 
-  function lastRowIsNotAllZeros(differences) {
-    return differences[differences.length - 1].some((item) => item !== 0);
-  }
+  console.log({ day: 9, part: 2, value: sum });
+}
+
+/**
+ * Builds the next line of differences, by taking the difference between each element, then finally removing the last element
+ */
+function buildNextLine(differences) {
+  return differences[differences.length - 1].map((_, i, arr) => arr[i + 1] - arr[i]).slice(0, -1);
+}
+
+function lastRowIsNotAllZeros(differences) {
+  return differences[differences.length - 1].some((item) => item !== 0);
 }
