@@ -1,7 +1,7 @@
 import fs from "fs";
 
-const inputPath = "./day7/example-input";
-// const inputPath = "./input";
+// const inputPath = "./day7/example-input";
+const inputPath = "./input";
 
 const HAND_TYPES = {
   HIGH_CARD: 1,
@@ -187,41 +187,31 @@ export function partTwo() {
     // 1. Five of a kind. If there is only one card, then it must be five of a kind
     if (Object.keys(cardCounts).length === 1) {
       handType = HAND_TYPES.FIVE_OF_A_KIND;
-    }
-
-    // 2. Four of a kind. If there is one card with 4, then it must be four of a kind
-    if (Object.values(cardCounts).includes(4)) {
+    } else if (Object.values(cardCounts).includes(4)) {
+      // 2. Four of a kind. If there is one card with 4, then it must be four of a kind
       handType = HAND_TYPES.FOUR_OF_A_KIND;
-    }
-
-    // 3. Full house. If there is one card with 3 and one with 2, then it must be a full house
-    if (Object.values(cardCounts).includes(3) && Object.values(cardCounts).includes(2)) {
+    } else if (Object.values(cardCounts).includes(3) && Object.values(cardCounts).includes(2)) {
+      // 3. Full house. If there is one card with 3 and one with 2, then it must be a full house
       handType = HAND_TYPES.FULL_HOUSE;
-    }
-
-    // 4. Three of a kind. If there is one card with 3, then it must be three of a kind
-    if (Object.values(cardCounts).includes(3)) {
+    } else if (Object.values(cardCounts).includes(3)) {
+      // 4. Three of a kind. If there is one card with 3, then it must be three of a kind
       handType = HAND_TYPES.THREE_OF_A_KIND;
-    }
-
-    // 5. Two pair. If there are two cards with 2, then it must be two pair
-    if (Object.values(cardCounts).filter((count) => count === 2).length === 2) {
+    } else if (Object.values(cardCounts).filter((count) => count === 2).length === 2) {
+      // 5. Two pair. If there are two cards with 2, then it must be two pair
       handType = HAND_TYPES.TWO_PAIR;
-    }
-
-    // 6. One pair. If there is one card with 2, then it must be one pair
-    if (Object.values(cardCounts).filter((count) => count === 2).length === 1) {
+    } else if (Object.values(cardCounts).filter((count) => count === 2).length === 1) {
+      // 6. One pair. If there is one card with 2, then it must be one pair
       handType = HAND_TYPES.ONE_PAIR;
     }
 
-    handType = HAND_TYPES.HIGH_CARD;
+    // 7. High card. If there are no other matches, then it must be a high card. This is already set as the default
 
     // If the hand contains any J's, we need to replace them with the best card and update the hand type
     if (cardHand.includes("J")) {
       // A lot more cases here
       // 1. Five of a kind. We can skip this as no need to convert
-      // 2. Four of a kind. If the hand contains 4 of the same NON J card, then we can convert the J to that card
-      if (handType === HAND_TYPES.FOUR_OF_A_KIND && cardCounts["J"] === 1) {
+      // 2. Four of a kind. We can promote to five of a kind
+      if (handType === HAND_TYPES.FOUR_OF_A_KIND) {
         return HAND_TYPES.FIVE_OF_A_KIND;
       }
       // 3. Full house. Two cases here: 3 J's and 2 of the same card, or 2 J's and 3 of the same card. Either way, we can end with 5 of a kind!
@@ -230,34 +220,18 @@ export function partTwo() {
       }
       // 4. Three of a kind. This becomes a bit more complicated as there are more options. break them down below
       if (handType === HAND_TYPES.THREE_OF_A_KIND) {
-        // 4a. If there are 3 J's, These can be converted to one opf the other two cards, and so we get 4 of a kind
-        if (cardCounts["J"] === 3) {
-          return HAND_TYPES.FOUR_OF_A_KIND;
-        }
-        // 4b. If there are 2 J's, then there must be 3 otherwise it would be a full house, so skip this as it cant happen (I think?)
-        if (cardCounts["J"] === 2) {
-          return HAND_TYPES.THREE_OF_A_KIND;
-        }
-        // 4c. If there is 1 J, then we can convert to either a full house, or 4 of a kind. 4 of a kind scores higher, so we will do that
-        if (cardCounts["J"] === 1) {
-          return HAND_TYPES.FOUR_OF_A_KIND;
-        }
+        // 3 J's can be converted to 4 of a kind. 1 J can be converted to make four of a kind.
+        return HAND_TYPES.FOUR_OF_A_KIND;
       }
       // 5. Two pair. Complicated so broken down below
       if (handType === HAND_TYPES.TWO_PAIR) {
-        // 5a. If there are 2 J's, then we need to dig deeper on whether there are 2 of any others and if so, we get 4 of a kind. Otherwise, we get 3 of a kind
+        // 5a. If there are 2 J's, there are 2 of another card. We can convert to a 4 of a kind
         if (cardCounts["J"] === 2) {
-          if (Object.values(cardCounts.filter((count) => count === 2)).length > 1) {
-            // This means there is also another set of 2, so we can convert to 4 of a kind
-            return HAND_TYPES.FOUR_OF_A_KIND;
-          }
-          // Otherwise, we can convert to 3 of a kind
-          return HAND_TYPES.THREE_OF_A_KIND;
+          // This means there is also another set of 2, so we can convert to 4 of a kind
+          return HAND_TYPES.FOUR_OF_A_KIND;
         }
-        // 5b. If there is 1 J, then we can convert to a three of a kind
-        if (cardCounts["J"] === 1) {
-          return HAND_TYPES.THREE_OF_A_KIND;
-        }
+        // Otherwise, we can convert to make 3 match and 2-match, meaning we can have a full house
+        return HAND_TYPES.FULL_HOUSE;
       }
       // 6. One pair. If there are 2 J's or 2 of any other card, then we can convert to a three of a kind
       if (handType === HAND_TYPES.ONE_PAIR) {
