@@ -58,7 +58,7 @@ export function partOne(input = null) {
 }
 
 export function partTwo(input = null) {
-  input = input || inputPath + "3";
+  input = input || inputPath + "4";
   var input = fs.readFileSync(input, "utf8");
   var inputArray = input.trim().split("\n");
   console.log({ inputArray });
@@ -100,32 +100,53 @@ export function partTwo(input = null) {
   }
 
   // Apply a flood fill to the grid to work out all coordinates that can escape. Then any remaining not in floodfill and in loop are the enclosed ones.
-  // Let's ignore that Squeezing between pipes for now!
 
-  let coordinatesThatCanEscape = getAvailableCoords(0, 0, inputArray);
-  console.log({ coordinatesThatCanEscape });
+  // To handle being able to split through pipes, I'll add a special character '#' inbetween each pipe in the x and y directions. Then can handle very similar to before?
+  const newInputArray = padInputsWithHashes(inputArray);
 
-  function getAvailableCoords(i, j, inputArray, ...availableCoords) {
+  console.log({ newInputArray });
+
+  let coordinatesThatCanEscape = getAvailableCoords(0, 0, newInputArray);
+
+  function getAvailableCoords(i, j, inputArray, visitedCoords = [], ...availableCoords) {
     // Go in the 4 directions and see if any are dots, if they are we recursively iterate
-    if (inputArray[i][j] === ".") {
+    if (inputArray[i][j] === "." || inputArray[i][j] === "#") {
       availableCoords.push(`${i},${j}`);
     }
 
+    visitedCoords.push(`${i},${j}`);
+
     // UP:
-    if (i > 0 && !availableCoords.includes(`${i - 1},${j}`) && inputArray[i - 1][j] === ".") {
-      availableCoords = getAvailableCoords(i - 1, j, inputArray, ...availableCoords);
+    if (
+      i > 0 &&
+      !visitedCoords.includes(`${i - 1},${j}`) &&
+      (inputArray[i - 1][j] === "." || inputArray[i - 1][j] === "#")
+    ) {
+      availableCoords = getAvailableCoords(i - 1, j, inputArray, visitedCoords, ...availableCoords);
     }
     // Down:
-    if (i < inputArray.length - 1 && !availableCoords.includes(`${i + 1},${j}`) && inputArray[i + 1][j] === ".") {
-      availableCoords = getAvailableCoords(i + 1, j, inputArray, ...availableCoords);
+    if (
+      i < inputArray.length - 1 &&
+      !visitedCoords.includes(`${i + 1},${j}`) &&
+      (inputArray[i + 1][j] === "." || inputArray[i + 1][j] === "#")
+    ) {
+      availableCoords = getAvailableCoords(i + 1, j, inputArray, visitedCoords, ...availableCoords);
     }
     // LEFT:
-    if (j > 0 && !availableCoords.includes(`${i},${j - 1}`) && inputArray[i][j - 1] === ".") {
-      availableCoords = getAvailableCoords(i, j - 1, inputArray, ...availableCoords);
+    if (
+      j > 0 &&
+      !visitedCoords.includes(`${i},${j - 1}`) &&
+      (inputArray[i][j - 1] === "." || inputArray[i][j - 1] === "#")
+    ) {
+      availableCoords = getAvailableCoords(i, j - 1, inputArray, visitedCoords, ...availableCoords);
     }
     // RIGHT:
-    if (j < inputArray[0].length && !availableCoords.includes(`${i},${j + 1}`) && inputArray[i][j + 1] === ".") {
-      availableCoords = getAvailableCoords(i, j + 1, inputArray, ...availableCoords);
+    if (
+      j < inputArray[0].length &&
+      !visitedCoords.includes(`${i},${j + 1}`) &&
+      (inputArray[i][j + 1] === "." || inputArray[i][j + 1] === "#")
+    ) {
+      availableCoords = getAvailableCoords(i, j + 1, inputArray, visitedCoords, ...availableCoords);
     }
 
     return availableCoords;
@@ -133,18 +154,52 @@ export function partTwo(input = null) {
 
   const enclosedCoords = [];
 
-  for (let i = 0; i < inputArray.length; i++) {
-    for (let j = 0; j < inputArray[0].length; j++) {
-      // if coordinate is not in coordinatesThatCanEscape and is not a pipe, add to array
-      if (inputArray[i][j] === "." && !coordinatesThatCanEscape.includes(`${i},${j}`)) {
-        enclosedCoords.push(`${i},${j}`);
+  for (let i = 0; i < newInputArray.length; i++) {
+    for (let j = 0; j < newInputArray[0].length; j++) {
+      if (newInputArray[i][j] === "#") {
+        continue;
+      }
+      if (newInputArray[i][j] === "." && !coordinatesThatCanEscape.includes(`${i},${j}`)) {
+        // Next we convert back to regular coordinate map. This is simply divide the  part by 2:
+        enclosedCoords.push(`${i / 2},${j / 2}`);
       }
     }
   }
 
   console.log({ enclosedCoords });
 
-  console.log({ day: 10, part: 2, value: "TODO" });
+  console.log({ day: 10, part: 2, value: enclosedCoords.length });
+
+  function padInputsWithHashes(inputArray) {
+    let newInputArray = [];
+    // Also want to add a new line in-between each
+    for (let i = 0; i < inputArray.length; i++) {
+      newInputArray.push(inputArray[i].replace(/(.{1})/g, "$1#"));
+      newInputArray.push(inputArray[i].replace(/(.{1})/g, "##"));
+    }
+
+    // Maintain any pipes in the new input hash lines
+    for (let i = 1; i < newInputArray.length - 1; i = i + 2) {
+      for (let j = 0; j < newInputArray[i].length; j++) {
+        if (newInputArray[i - 1][j] === "|" || newInputArray[i + 1][j] === "|") {
+          let tempArr = newInputArray[i].split("");
+          tempArr[j] = "|";
+          newInputArray[i] = tempArr.join("");
+        }
+      }
+    }
+
+    for (let i = 0; i < newInputArray.length - 1; i = i + 2) {
+      for (let j = 1; j < newInputArray[i].length - 1; j++) {
+        if (newInputArray[i][j] === "#" && (newInputArray[i][j - 1] === "-" || newInputArray[i][j + 1] === "-")) {
+          let tempArr = newInputArray[i].split("");
+          tempArr[j] = "-";
+          newInputArray[i] = tempArr.join("");
+        }
+      }
+    }
+    return newInputArray;
+  }
 }
 
 function findStartCoordinate(inputArray) {
