@@ -28,4 +28,5 @@ dayEight.partOne();
 dayEight.partTwo();
 dayNine.partOne();
 dayNine.partTwo();
-dayTen.partOne('input');
+dayTen.partOne();
+dayTen.partTwo('input');
