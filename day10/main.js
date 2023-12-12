@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const inputPath = "./day10/example-input";
+const inputPath = "./day10/example-input2";
 
 const LEFT = 0;
 const UP = 1;
@@ -25,20 +25,100 @@ export function partOne(input = null) {
   var input = fs.readFileSync(input, "utf8");
   var inputArray = input.trim().split("\n");
 
-  // TESTING - coordinate start is row 2 col 0
-  let startCoordinate = [2, 0];
-  let coordinate = startCoordinate;
-  let symbol = "F";
-  let direction = AVAILABLE_OUT_DIRECTIONS[symbol][0];
-  while (symbol !== "S") {
-    let stepOutput = takeStep(direction, symbol, ...coordinate);
-    direction = stepOutput.direction;
-    coordinate = stepOutput.newCoordinate;
-    symbol = inputArray[coordinate[0]][coordinate[1]];
-    console.log({ direction, coordinate, symbol });
+  let startCoordinate = findStartCoordinate(inputArray);
+  let symbol = determineStartCoordinateSymbol(inputArray, startCoordinate);
+
+  let steps = 0;
+  // Define coordinates/symbol for each path
+  let directionA = getOppositeDirection(AVAILABLE_OUT_DIRECTIONS[symbol][0]);
+  let directionB = getOppositeDirection(AVAILABLE_OUT_DIRECTIONS[symbol][1]);
+  let symbolA = symbol;
+  let symbolB = symbol;
+  let coordinateA = [...startCoordinate];
+  let coordinateB = [...startCoordinate];
+
+  while (true) {
+    // A:
+    let stepResultA = takeStep(directionA, symbolA, ...coordinateA);
+    directionA = stepResultA.direction;
+    coordinateA = stepResultA.newCoordinate;
+    symbolA = inputArray[coordinateA[0]][coordinateA[1]];
+    // B:
+    let stepResultB = takeStep(directionB, symbolB, ...coordinateB);
+    directionB = stepResultB.direction;
+    coordinateB = stepResultB.newCoordinate;
+    symbolB = inputArray[coordinateB[0]][coordinateB[1]];
+    steps++;
+    console.log({ coordinateA, coordinateB });
+    if (coordinateA.join(",") == coordinateB.join(",")) {
+      break;
+    }
   }
 
-  console.log({ day: 10, part: 1, value: "todo" });
+  console.log({ day: 10, part: 1, value: steps });
+}
+
+function findStartCoordinate(inputArray) {
+  for (let i = 0; i < inputArray.length; i++) {
+    let startIndex = inputArray[i].indexOf("S");
+    if (startIndex > -1) {
+      return [i, startIndex]; // return (i,j) - ie. the (rowIndex, colIndex)
+    }
+  }
+}
+
+function determineStartCoordinateSymbol(inputArray, startCoordinate) {
+  const surroundingValidDirections = [];
+  // Look UP if we are not on the top row
+  if (startCoordinate[0] > 0) {
+    let testCoord = [startCoordinate[0] - 1, startCoordinate[1]];
+    let letter = inputArray[testCoord[0]][testCoord[1]];
+    // Does the letter have an output of DOWN
+    if (AVAILABLE_OUT_DIRECTIONS[letter].includes(DOWN)) {
+      surroundingValidDirections.push(UP);
+    }
+  }
+  // Look DOWN if we are not on the bottom row
+  if (startCoordinate[0] < inputArray.length) {
+    let testCoord = [startCoordinate[0] + 1, startCoordinate[1]];
+    let letter = inputArray[testCoord[0]][testCoord[1]];
+    // Does the letter have an output of UP
+    if (AVAILABLE_OUT_DIRECTIONS[letter].includes(UP)) {
+      surroundingValidDirections.push(DOWN);
+    }
+  }
+
+  // Look RIGHT if we are not on the right-most col  (note: all rows are the same length)
+  if (startCoordinate[1] < inputArray[0].length) {
+    let testCoord = [startCoordinate[0], startCoordinate[1] + 1];
+    let letter = inputArray[testCoord[0]][testCoord[1]];
+    // Does the letter have an output of LEFT
+    if (AVAILABLE_OUT_DIRECTIONS[letter].includes(LEFT)) {
+      surroundingValidDirections.push(RIGHT);
+    }
+  }
+
+  // Look LEFT is we are not on the first col
+  if (startCoordinate[1] > 0) {
+    let testCoord = [startCoordinate[0], startCoordinate[1] - 1];
+    let letter = inputArray[testCoord[0]][testCoord[1]];
+    // Does the letter have an output of RIGHT
+    if (AVAILABLE_OUT_DIRECTIONS[letter].includes(RIGHT)) {
+      surroundingValidDirections.push(LEFT);
+    }
+  }
+
+  for (const letter in AVAILABLE_OUT_DIRECTIONS) {
+    // If every value in AVAILABLE_OUT_DIRECTIONS[letter] is in surroundingValidDirections, return that letter
+    // Note: If >1 match, we maybe need to go through and handle errors?
+    if (
+      AVAILABLE_OUT_DIRECTIONS[letter].every((val) => {
+        return surroundingValidDirections.indexOf(val) !== -1;
+      })
+    ) {
+      return letter;
+    }
+  }
 }
 
 function getOppositeDirection(direction) {
