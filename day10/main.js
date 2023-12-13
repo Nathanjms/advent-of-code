@@ -1,5 +1,4 @@
 import fs from "fs";
-import { floodFill, getEnclosedCoords } from "./helpers.js";
 
 const inputPath = "./day10/example-input";
 
@@ -66,7 +65,6 @@ export function partTwo(input = null) {
     .split("\n")
     .map((line) => line.split(""));
 
-  console.log({ inputArray });
   /**
    * lets use the Point In Polygon, Ray Casting Algorithm to solve this.
    * https://en.wikipedia.org/wiki/Point_in_polygon
@@ -83,7 +81,6 @@ export function partTwo(input = null) {
 
   // First lets get the boundary coordinates
   const boundaryCoordinates = getLoopCoordinates(symbol, startCoordinate);
-  console.log({ boundaryCoordinates });
 
   // next let's swap 'S' in the input for it's symbol:
   inputArray[startCoordinate[0]][startCoordinate[1]] = symbol;
@@ -98,7 +95,6 @@ export function partTwo(input = null) {
         // If this is a boundary, it can't be a trapped element.
         continue;
       }
-      // console.log({ i, j, number: getNumberOfPassThroughs(i, j, inputArray[i], boundaryCoordinates) });
       if (getNumberOfPassThroughs(i, j, inputArray[i], boundaryCoordinates) % 2 === 1) {
         trappedElements.push(i + "," + j);
       }

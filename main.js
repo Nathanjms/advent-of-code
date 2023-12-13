@@ -8,6 +8,7 @@ import * as daySeven from "./day7/main.js";
 import * as dayEight from "./day8/main.js";
 import * as dayNine from "./day9/main.js";
 import * as dayTen from "./day10/main.js";
+import * as dayEleven from "./day11/main.js";
 
 dayOne.partOne();
 dayOne.partTwo();
@@ -29,4 +30,5 @@ dayEight.partTwo();
 dayNine.partOne();
 dayNine.partTwo();
 dayTen.partOne();
-dayTen.partTwo("input");
+dayTen.partTwo();
+dayEleven.partOne("input");
