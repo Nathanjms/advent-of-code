@@ -59,160 +59,103 @@ export function partOne(input = null) {
 }
 
 export function partTwo(input = null) {
-  input = input || inputPath + "3";
+  input = input || inputPath + "4";
   var input = fs.readFileSync(input, "utf8");
-  var inputArray = input.trim().split("\n");
+  var inputArray = input
+    .trim()
+    .split("\n")
+    .map((line) => line.split(""));
+
   console.log({ inputArray });
+  /**
+   * lets use the Point In Polygon, Ray Casting Algorithm to solve this.
+   * https://en.wikipedia.org/wiki/Point_in_polygon
+   * For each point, count in one direction to the edge, the number of times the boundary is passed.
+   * If even, the point is INSIDE, if odd, OUTSIDE.
+   * We will go to the right.
+   * The slight difficulty comes from being able to go in-between pipes.
+   * This means for F---7 and L---J, this can be gone around and so does not count as a border
+   * We count as 1 boundary for the opposite, ie. F----J or L-----7
+   */
 
   let startCoordinate = findStartCoordinate(inputArray);
   let symbol = determineStartCoordinateSymbol(inputArray, startCoordinate);
 
-  // Loop Coordinates now need to be stored, then we will go through every coordinate, and if it:
-  // 1. Is not in the loop coordinates
-  // 2. Has loop coordinates every side* (THis doesnt work)
-  // Then we say it is surrounded
-  const loopCoordinates = [];
-  // Define coordinates/symbol for each path
-  let directionA = getOppositeDirection(AVAILABLE_OUT_DIRECTIONS[symbol][0]);
-  let directionB = getOppositeDirection(AVAILABLE_OUT_DIRECTIONS[symbol][1]);
-  let symbolA = symbol;
-  let symbolB = symbol;
-  let coordinateA = [...startCoordinate];
-  let coordinateB = [...startCoordinate];
-  loopCoordinates.push(startCoordinate.join(","));
+  // First lets get the boundary coordinates
+  const boundaryCoordinates = getLoopCoordinates(symbol, startCoordinate);
+  console.log({ boundaryCoordinates });
 
-  while (true) {
-    // A:
-    let stepResultA = takeStep(directionA, symbolA, ...coordinateA);
-    directionA = stepResultA.direction;
-    coordinateA = stepResultA.newCoordinate;
-    symbolA = inputArray[coordinateA[0]][coordinateA[1]];
-    loopCoordinates.push(coordinateA.join(","));
-    // B:
-    let stepResultB = takeStep(directionB, symbolB, ...coordinateB);
-    directionB = stepResultB.direction;
-    coordinateB = stepResultB.newCoordinate;
-    symbolB = inputArray[coordinateB[0]][coordinateB[1]];
-    if (coordinateA.join(",") == coordinateB.join(",")) {
-      break;
-    }
-    loopCoordinates.push(coordinateB.join(",")); // Push b here, so we don't duplicate the last one!
-  }
+  // next let's swap 'S' in the input for it's symbol:
+  inputArray[startCoordinate[0]][startCoordinate[1]] = symbol;
 
-  // Apply a flood fill to the grid to work out all coordinates that can escape. Then any remaining not in floodfill and in loop are the enclosed ones.
-
-  // To handle being able to split through pipes, I'll add a special character '#' inbetween each pipe in the x and y directions. Then can handle very similar to before?
-  const newInputArray = padInputsWithHashesAndRemap(inputArray);
-
-  let test = floodFill(loopCoordinates, newInputArray, 0, 0);
-  let test2 = getEnclosedCoords(newInputArray, test);
-
-  console.log({ test });
-  console.log({ test2 });
-
-  let availableCoords = [];
-  let coordinatesThatCanEscape = getAvailableCoords(0, 0, newInputArray);
-
-  const enclosedCoords = [];
-
-  for (let i = 0; i < newInputArray.length; i++) {
-    for (let j = 0; j < newInputArray[0].length; j++) {
-      if (newInputArray[i][j] === "#") {
+  // Now we can loop through each element and check if it is trapped.
+  // Note we skip the boundaries as they can't be trapped by definition of being on the edge
+  // At most they will be coordinate
+  const trappedElements = [];
+  for (let i = 1; i < inputArray.length - 1; i++) {
+    for (let j = 1; j < inputArray[0].length - 1; j++) {
+      if (boundaryCoordinates.includes(i + "," + j)) {
+        // If this is a boundary, it can't be a trapped element.
         continue;
       }
-      if (
-        !loopCoordinates.includes(`${i / 2},${j / 2}`) &&
-        !coordinatesThatCanEscape.includes(`${i},${j}`) &&
-        i !== 0 &&
-        j !== 0 &&
-        i !== newInputArray.length &&
-        j !== newInputArray[0].length
-      ) {
-        // Next we convert back to regular coordinate map. This is simply divide the  part by 2:
-        enclosedCoords.push(`${i / 2},${j / 2}`);
+      // console.log({ i, j, number: getNumberOfPassThroughs(i, j, inputArray[i], boundaryCoordinates) });
+      if (getNumberOfPassThroughs(i, j, inputArray[i], boundaryCoordinates) % 2 === 1) {
+        trappedElements.push(i + "," + j);
       }
     }
   }
 
-  console.log({ enclosedCoords });
+  console.log({ day: 10, part: 2, value: trappedElements.length });
 
-  console.log({ day: 10, part: 2, value: enclosedCoords.length });
+  function getNumberOfPassThroughs(i, j, line, boundaryCoordinates) {
+    // Go from this point to the end by incrementing j
+    let sum = 0;
+    let lineIndex = j;
 
-  function getAvailableCoords(i, j, inputArray, visitedCoords = []) {
-    if (loopCoordinates.includes(i / 2 + "," + j / 2) || visitedCoords.includes(`${i / 2},${j / 2}`)) {
-      // Stop if we've reached somewhere we've visited or have reached the loop
-      return;
+    while (lineIndex < line.length) {
+      /**
+       * If it is a boundary point, then it can be considered as crossing if it is a | (easy), or if it is F---J or L---7, where '-' is any
+       * natural number N. Because we are checking boundary coordinates only, we know there MUST be a J if there is an F, and a 7 if an L.
+       * Therefore, below we only need to check three: |, J, L
+       */
+      if (boundaryCoordinates.includes(i + "," + lineIndex) && ["|", "J", "L"].includes(line[lineIndex])) {
+        sum++;
+      }
+      lineIndex++;
     }
-
-    // Add if this coordinate is not in the loop and is not on the edge
-    availableCoords.push(`${i},${j}`);
-
-    visitedCoords.push(`${i},${j}`);
-
-    // UP:
-    if (
-      i > 0 &&
-      !visitedCoords.includes(`${i - 1},${j}`) &&
-      (inputArray[i - 1][j] === "." || inputArray[i - 1][j] === "#")
-    ) {
-      availableCoords = getAvailableCoords(i - 1, j, inputArray, visitedCoords);
-    }
-    // Down:
-    if (
-      i < inputArray.length - 1 &&
-      !visitedCoords.includes(`${i + 1},${j}`) &&
-      (inputArray[i + 1][j] === "." || inputArray[i + 1][j] === "#")
-    ) {
-      availableCoords = getAvailableCoords(i + 1, j, inputArray, visitedCoords);
-    }
-    // LEFT:
-    if (
-      j > 0 &&
-      !visitedCoords.includes(`${i},${j - 1}`) &&
-      (inputArray[i][j - 1] === "." || inputArray[i][j - 1] === "#")
-    ) {
-      availableCoords = getAvailableCoords(i, j - 1, inputArray, visitedCoords);
-    }
-    // RIGHT:
-    if (
-      j < inputArray[0].length &&
-      !visitedCoords.includes(`${i},${j + 1}`) &&
-      (inputArray[i][j + 1] === "." || inputArray[i][j + 1] === "#")
-    ) {
-      availableCoords = getAvailableCoords(i, j + 1, inputArray, visitedCoords);
-    }
-
-    return availableCoords;
+    return sum;
   }
 
-  function padInputsWithHashesAndRemap(inputArray) {
-    let newInputArray = [];
-    // Also want to add a new line in-between each
-    for (let i = 0; i < inputArray.length; i++) {
-      newInputArray.push(inputArray[i].replace(/(.{1})/g, "$1#"));
-      newInputArray.push(inputArray[i].replace(/(.{1})/g, "##"));
-    }
+  function getLoopCoordinates(symbol, startCoordinate) {
+    const loopCoordinates = [];
+    // Define coordinates/symbol for each path
+    let directionA = getOppositeDirection(AVAILABLE_OUT_DIRECTIONS[symbol][0]);
+    let directionB = getOppositeDirection(AVAILABLE_OUT_DIRECTIONS[symbol][1]);
+    let symbolA = symbol;
+    let symbolB = symbol;
+    let coordinateA = [...startCoordinate];
+    let coordinateB = [...startCoordinate];
+    loopCoordinates.push(startCoordinate.join(","));
 
-    // Now map each line into array of characters instead of a string
-    newInputArray = newInputArray.map((line) => line.split(""));
-
-    // Maintain any pipes in the new input hash lines
-    for (let i = 1; i < newInputArray.length - 1; i = i + 2) {
-      for (let j = 0; j < newInputArray[i].length; j++) {
-        if (newInputArray[i - 1][j] === "|" || newInputArray[i + 1][j] === "|") {
-          newInputArray[i][j] = "|";
-        }
+    while (true) {
+      // A:
+      let stepResultA = takeStep(directionA, symbolA, ...coordinateA);
+      directionA = stepResultA.direction;
+      coordinateA = stepResultA.newCoordinate;
+      symbolA = inputArray[coordinateA[0]][coordinateA[1]];
+      loopCoordinates.push(coordinateA.join(","));
+      // B:
+      let stepResultB = takeStep(directionB, symbolB, ...coordinateB);
+      directionB = stepResultB.direction;
+      coordinateB = stepResultB.newCoordinate;
+      symbolB = inputArray[coordinateB[0]][coordinateB[1]];
+      if (coordinateA.join(",") == coordinateB.join(",")) {
+        break;
       }
+      loopCoordinates.push(coordinateB.join(",")); // Push b here, so we don't duplicate the last one!
     }
 
-    for (let i = 0; i < newInputArray.length - 1; i = i + 2) {
-      for (let j = 1; j < newInputArray[i].length - 1; j++) {
-        if (newInputArray[i][j] === "#" && (newInputArray[i][j - 1] === "-" || newInputArray[i][j + 1] === "-")) {
-          newInputArray[i][j] = "-";
-        }
-      }
-    }
-    return newInputArray;
+    return loopCoordinates;
   }
 }
 
