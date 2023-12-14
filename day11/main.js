@@ -34,8 +34,88 @@ export function partOne(input = null) {
   console.log({ day: 11, part: 1, value: totalSteps });
 }
 
+export function partTwo(input = null) {
+  var input = input || inputPath;
+  input = fs.readFileSync(input, "utf8");
+  var inputArray = input
+    .trim()
+    .split("\n")
+    .map((line) => line.split(""));
+
+  /**
+   * For this one, we need to not just expand the map as it's enormous. Instead we will:
+   * 1. Get original galaxy coordinates and rows/cold without a map
+   * 2. When computin differences:
+   *     a. For rows, do |dx| + n*scale, where n is number of rows BETWEEN without galaxies and scale is the gap between
+   *     b. For columns, do |dy| + n*scale, where n is number of rows BETWEEN without galaxies and scale is the gap between
+   */
+
+  let { galaxyCoordinates, rowsWithoutGalaxies, colsWithoutGalaxies } = getOriginalGalaxyCoordinates(inputArray);
+
+  console.log({ galaxyCoordinates, rowsWithoutGalaxies, colsWithoutGalaxies });
+
+  const scale = 10;
+
+  // // Formula for number of unique pairs is (n * (n-1))/2. where n is number of points
+  // let numPoints = (galaxyCount * (galaxyCount - 1)) / 2;
+  let galaxiesToCompare = [...galaxyCoordinates];
+  let totalSteps = 0;
+  for (let i = 0; i < galaxyCoordinates.length - 1; i++) {
+    // Iterate through the remaining galaxies to compare
+    for (let j = 1; j < galaxiesToCompare.length; j++) {
+      // Number of steps is te sum of dy and dx
+      let diff =
+        Math.abs(galaxyCoordinates[i][0] - galaxiesToCompare[j][0]) +
+        scale * getNumberOfExpansionsBetween(rowsWithoutGalaxies, galaxyCoordinates[i][0], galaxyCoordinates[j][0]) +
+        Math.abs(galaxyCoordinates[i][1] - galaxiesToCompare[j][1]) +
+        scale * getNumberOfExpansionsBetween(colsWithoutGalaxies, galaxyCoordinates[i][1], galaxyCoordinates[j][1]);
+      totalSteps += diff;
+    }
+    galaxiesToCompare.shift(); // remove the current one
+  }
+
+  console.log({ totalSteps });
+
+  console.log({ day: 11, part: 1, value: totalSteps });
+}
+
 function display(array) {
   console.log(array.map((line) => line.join("")).join("\n"));
+}
+
+function getOriginalGalaxyCoordinates(inputArray) {
+  // Start with a list of all row/col indexes, and remove if we detect a galaxy
+  let rowsWithoutGalaxies = new Set([...Array(inputArray.length).keys()]);
+  let colsWithoutGalaxies = new Set([...Array(inputArray[0].length).keys()]);
+  const galaxyCoordinates = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    for (let j = 0; j < inputArray[0].length; j++) {
+      if (inputArray[i][j] === "#") {
+        galaxyCoordinates.push([i, j]);
+        // Convert to arrays for ease of indexing
+        rowsWithoutGalaxies.delete(i);
+        colsWithoutGalaxies.delete(j);
+      }
+    }
+  }
+
+  rowsWithoutGalaxies = [...rowsWithoutGalaxies];
+  colsWithoutGalaxies = [...colsWithoutGalaxies];
+
+  return { galaxyCoordinates, rowsWithoutGalaxies, colsWithoutGalaxies };
+}
+
+function getNumberOfExpansionsBetween(rowOrColWithoutGalaxies, positionOne, positionTwo) {
+  // Need to handle 3 cases: positions equal, one > two and two > one
+  if (positionOne === positionTwo) {
+    return 0;
+  }
+  if (positionOne > positionTwo) {
+    return rowOrColWithoutGalaxies.filter((rowIndex) => rowIndex > positionTwo && rowIndex < positionOne).length;
+  }
+  if (positionOne < positionTwo) {
+    return rowOrColWithoutGalaxies.filter((rowIndex) => rowIndex > positionOne && rowIndex < positionTwo).length;
+  }
 }
 
 function handleExpansion(inputArray) {
