@@ -31,5 +31,5 @@ dayNine.partOne();
 dayNine.partTwo();
 dayTen.partOne();
 dayTen.partTwo();
-dayEleven.partOne();
+dayEleven.partOne("input");
 dayEleven.partTwo("input");
