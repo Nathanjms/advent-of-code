@@ -19,11 +19,10 @@ export function partOne(input = null) {
   for (let i = 0; i < galaxyCoordinates.length - 1; i++) {
     // Iterate through the remaining galaxies to compare
     for (let j = 1; j < galaxiesToCompare.length; j++) {
-      // Number of steps is te sum of dy and dx
+      // Number of steps is the sum of dy and dx
       let diff =
         Math.abs(galaxyCoordinates[i][0] - galaxiesToCompare[j][0]) +
         Math.abs(galaxyCoordinates[i][1] - galaxiesToCompare[j][1]);
-      console.log({ diff, i, j });
       totalSteps += diff;
     }
     galaxiesToCompare.shift(); // remove the current one
@@ -45,16 +44,14 @@ export function partTwo(input = null) {
   /**
    * For this one, we need to not just expand the map as it's enormous. Instead we will:
    * 1. Get original galaxy coordinates and rows/cold without a map
-   * 2. When computin differences:
-   *     a. For rows, do |dx| + n*scale, where n is number of rows BETWEEN without galaxies and scale is the gap between
-   *     b. For columns, do |dy| + n*scale, where n is number of rows BETWEEN without galaxies and scale is the gap between
+   * 2. When computing differences:
+   *     a. For rows, do |dx| + n*(scale-1), where n is number of rows BETWEEN without galaxies and scale is the gap between
+   *     b. For columns, do |dy| + n*(scale-1), where n is number of rows BETWEEN without galaxies and scale is the gap between
    */
 
   let { galaxyCoordinates, rowsWithoutGalaxies, colsWithoutGalaxies } = getOriginalGalaxyCoordinates(inputArray);
 
-  console.log({ galaxyCoordinates, rowsWithoutGalaxies, colsWithoutGalaxies });
-
-  const scale = 10;
+  const scale = 1000000;
 
   // // Formula for number of unique pairs is (n * (n-1))/2. where n is number of points
   // let numPoints = (galaxyCount * (galaxyCount - 1)) / 2;
@@ -66,15 +63,16 @@ export function partTwo(input = null) {
       // Number of steps is te sum of dy and dx
       let diff =
         Math.abs(galaxyCoordinates[i][0] - galaxiesToCompare[j][0]) +
-        scale * getNumberOfExpansionsBetween(rowsWithoutGalaxies, galaxyCoordinates[i][0], galaxyCoordinates[j][0]) +
+        (scale - 1) *
+          getNumberOfExpansionsBetween(rowsWithoutGalaxies, galaxyCoordinates[i][0], galaxiesToCompare[j][0]) +
         Math.abs(galaxyCoordinates[i][1] - galaxiesToCompare[j][1]) +
-        scale * getNumberOfExpansionsBetween(colsWithoutGalaxies, galaxyCoordinates[i][1], galaxyCoordinates[j][1]);
+        (scale - 1) *
+          getNumberOfExpansionsBetween(colsWithoutGalaxies, galaxyCoordinates[i][1], galaxiesToCompare[j][1]);
+
       totalSteps += diff;
     }
     galaxiesToCompare.shift(); // remove the current one
   }
-
-  console.log({ totalSteps });
 
   console.log({ day: 11, part: 1, value: totalSteps });
 }
