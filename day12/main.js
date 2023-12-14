@@ -14,18 +14,27 @@ export function partOne(input = null) {
     total += countPossibilities(springs, conditionRecords);
   }
 
-  console.log({ day: 11, part: 1, value: total });
+  console.log({ day: 12, part: 1, value: total });
 }
 
 export function partTwo(input = null) {
   var input = input || inputPath;
   input = fs.readFileSync(input, "utf8");
-  var inputArray = input
-    .trim()
-    .split("\n")
-    .map((line) => line.split(""));
+  var inputArray = input.trim().split("\n");
 
-  console.log({ day: 11, part: 2, value: "todo" });
+  let total = 0;
+  for (const line of inputArray) {
+    let [springs, conditionRecords] = line.split(" ");
+    conditionRecords = conditionRecords.split(",").map(Number);
+
+    // Enlarge both by 5:
+    springs = (springs + "?").repeat(5).slice(0, -1);
+    conditionRecords = Array.from({ length: 5 }, () => [...conditionRecords]).flat();
+
+    total += countPossibilities(springs, conditionRecords);
+  }
+
+  console.log({ day: 12, part: 2, value: total });
 }
 
 // The hard bit..
@@ -35,6 +44,7 @@ export function partTwo(input = null) {
  * @param {string[]} conditionRecords
  * @returns
  */
+let cache = {};
 function countPossibilities(springs, conditionRecords) {
   if (springs === "") {
     // If there are no more springs, this is possible if there there are no more condition records, else is not
@@ -47,6 +57,11 @@ function countPossibilities(springs, conditionRecords) {
   }
 
   let result = 0;
+
+  let key = springs + conditionRecords;
+  if (key in cache) {
+    return cache[key];
+  }
 
   /* 2 cases - treat ? as . or as # */
 
@@ -72,5 +87,6 @@ function countPossibilities(springs, conditionRecords) {
     }
   }
 
+  cache[key] = result;
   return result;
 }
