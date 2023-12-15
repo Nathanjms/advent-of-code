@@ -1,0 +1,25 @@
+import fs from "fs";
+
+const inputPath = "./dayx/example-input";
+
+export function partOne(input = null) {
+  var input = input || inputPath;
+  input = fs.readFileSync(input, "utf8");
+  var inputArray = input
+    .trim()
+    .split("\n")
+    .map((line) => line.split(""));
+
+  console.log({ day: '', part: 1, value: 'todo' });
+}
+
+export function partOne(input = null) {
+  var input = input || inputPath;
+  input = fs.readFileSync(input, "utf8");
+  var inputArray = input
+    .trim()
+    .split("\n")
+    .map((line) => line.split(""));
+
+  console.log({ day: '', part: 2, value: 'todo' });
+}
