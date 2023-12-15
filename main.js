@@ -40,4 +40,5 @@ day12.partOne();
 day12.partTwo();
 day13.partOne();
 day13.partTwo();
-day14.partOne("input");
+day14.partOne();
+day14.partTwo();
