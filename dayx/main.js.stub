@@ -13,7 +13,7 @@ export function partOne(input = null) {
   console.log({ day: '', part: 1, value: 'todo' });
 }
 
-export function partOne(input = null) {
+export function partTwo(input = null) {
   var input = input || inputPath;
   input = fs.readFileSync(input, "utf8");
   var inputArray = input
