@@ -35,25 +35,38 @@ export function partTwo(input = null) {
 function findVerticalOrHorizontalReflectionLine(puzzle) {
   let reflectionPoint = 0.5; // In-between 2 points.
 
+  let validVerticalReflectionPoints = [];
+  let validHorizontalReflectionPoints = [];
+
   while (reflectionPoint > 0 && (reflectionPoint < puzzle[0].length - 1 || reflectionPoint < puzzle.length - 1)) {
     const lowIndex = Math.floor(reflectionPoint); // left for vertical, top for horizontal
     const highIndex = Math.ceil(reflectionPoint); // right for vertical, bottom for vertical
     // Horizontally...
-    if (reflectionPoint < puzzle[0].length) {
+    if (reflectionPoint < puzzle[0].length - 1) {
       if (expandAndCheckAllLinesMatchVertically(lowIndex, highIndex, puzzle)) {
         // We've found the line! So we know it's (a) vertical and (b) at reflectionPoint. This means there are highIndex columns to the left of it
-        return { isVertical: true, count: highIndex };
+        validVerticalReflectionPoints.push(highIndex);
       }
     }
 
     // Vertically...
-    if (reflectionPoint < puzzle.length) {
+    if (reflectionPoint < puzzle.length - 1) {
       if (expandAndCheckAllLinesMatchHorizontally(lowIndex, highIndex, puzzle)) {
         // We've found the line! So we know it's (a) horizontal and (b) at reflectionPoint. This means there are highIndex columns above of it
-        return { isVertical: false, count: highIndex };
+        validHorizontalReflectionPoints.push(highIndex);
       }
     }
     reflectionPoint++;
+  }
+
+  // console.log({ validHorizontalReflectionPoints, validVerticalReflectionPoints });
+
+  if (validVerticalReflectionPoints.length) {
+    return { isVertical: true, count: validVerticalReflectionPoints[validVerticalReflectionPoints.length - 1] };
+  }
+
+  if (validHorizontalReflectionPoints.length) {
+    return { isVertical: false, count: validHorizontalReflectionPoints[validHorizontalReflectionPoints.length - 1] };
   }
 
   throw Error("No Reflection found :c");
@@ -89,7 +102,7 @@ function expandAndCheckAllLinesMatchVertically(leftIndex, rightIndex, puzzle) {
  * Horizontal is easier - each row is a string, so we can directly check the whole row
  */
 function expandAndCheckAllLinesMatchHorizontally(topIndex, bottomIndex, puzzle) {
-  while (topIndex >= 0 && bottomIndex < puzzle.length - 1) {
+  while (topIndex >= 0 && bottomIndex < puzzle.length) {
     if (puzzle[topIndex] !== puzzle[bottomIndex]) {
       return false;
     }
