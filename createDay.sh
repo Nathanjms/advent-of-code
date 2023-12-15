@@ -28,5 +28,14 @@ sed -i '' "s/day: ''/day: $day/g" day$day/main.js.stub
 #  Then change the name of the file main.js.stub to main.js
 mv day$day/main.js.stub day$day/main.js
 
+# Go into ./main.js, and add a new line "import * as dayx from "./dayx/main.js";" on the first empty line, then a gap after
+sed -i '' "/^$/i\\
+import * as day$day from \"./day$day/main.js\";\\
+" ./main.js
+
+# Now add 2 new lines to the end of the file, 'dayx.partOne();' and 'dayx.partTwo();'
+echo "day$day.partOne();" >>main.js
+echo "day$day.partTwo();" >>main.js
+
 # Done!
 echo "Done!"
