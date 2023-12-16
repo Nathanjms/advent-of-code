@@ -14,7 +14,6 @@ export function partOne(input = null) {
   let sum = 0;
   for (let puzzle of puzzles) {
     const { isVertical, count } = findVerticalOrHorizontalReflectionLine(puzzle);
-    console.log({ isVertical, count });
     sum += isVertical ? count : 100 * count;
   }
 
@@ -33,7 +32,6 @@ export function partTwo(input = null) {
   let sum = 0;
   for (let puzzle of puzzles) {
     const { isVertical, count } = findVerticalOrHorizontalReflectionLineWithSmudge(puzzle);
-    console.log({ isVertical, count });
     sum += isVertical ? count : 100 * count;
   }
 
@@ -196,8 +194,6 @@ function expandAndCheckAllLinesMatchVerticallyWithSmudge(leftIndex, rightIndex, 
     leftIndex--;
     rightIndex++;
   }
-
-  console.log({ incorrectMatchCount });
 
   return incorrectMatchCount === 1;
 }

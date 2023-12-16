@@ -84,7 +84,6 @@ export function partTwo(input = null) {
   }
 
   // After the first x (dishArrangementCycle[dish.join("")]), it repeats every repeatCycleNumber - x times
-  console.log({ cycle, first: dishArrangementCycle[dish.join("")] });
 
   // So we now run it 1,000,000,000 % repeatCycleNumber - x times more times!
   let timesToRun =
