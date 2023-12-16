@@ -74,57 +74,96 @@ export function partTwo(input = null) {
   input = fs.readFileSync(input, "utf8");
   var inputArray = input.trim().split("\n");
 
-  let traversedTiles = new Set();
-
-  let lightBeamPositions = [
-    { key: 0, coordinates: [0, 0], startCoordinates: [0, 0], direction: DIRECTIONS.RIGHT, isFinished: false },
-  ]; // Start with single beam at 0,0
-
-  // We need to handle 0,0 to determine which direction the beam should be inside the loop.
-  let handler = handleDirectionChange(inputArray[0][0], lightBeamPositions[0]);
-  if (handler.newLightBeam) {
-    lightBeamPositions.push(handler.newLightBeam);
-  }
-
-  traversedTiles.add("0,0");
-  // Store whether we have been to this spot with these steps before, and break if so
-  let cache = [];
-
-  do {
-    // Take a step to the right
-    takeStep(lightBeamPositions);
-  } while (lightBeamPositions.some((lightBeam) => !lightBeam.isFinished));
-
-  console.log({ day: 16, part: 2, value: traversedTiles.size });
-
-  function takeStep() {
-    for (const lightBeam of lightBeamPositions.filter((beam) => !beam.isFinished)) {
-      let [newI, newJ] = step(lightBeam.direction, ...lightBeam.coordinates);
-      let key = newI + "," + newJ + "," + lightBeam.direction;
-
-      // If the beam has exited or is back where it started (not sure this 2nd one is right), then we can say its finished.
-      if (
-        newI < 0 ||
-        newI > inputArray.length - 1 ||
-        newJ < 0 ||
-        newJ > inputArray[1].length - 1 ||
-        cache.includes(key)
-        // (newI === lightBeam.startCoordinates[0] && newJ === lightBeam.startCoordinates[1])
-      ) {
-        lightBeam.isFinished = true;
-        break;
-      }
-      cache.push(key);
-
-      lightBeam.coordinates = [newI, newJ];
-      traversedTiles.add(newI + "," + newJ);
-
-      let handler = handleDirectionChange(inputArray[newI][newJ], lightBeam);
-      if (handler.newLightBeam) {
-        lightBeamPositions.push(handler.newLightBeam);
+  let edgeCoordinates = [];
+  for (let i = 0; i < inputArray.length; i++) {
+    for (let j = 0; j < inputArray[i].length; j++) {
+      if ([0, inputArray.length - 1].includes(i) || [0, inputArray[i].length - 1].includes(j)) {
+        if (i === 0) {
+          edgeCoordinates.push({ coordinates: [i, j], direction: DIRECTIONS.DOWN });
+        }
+        if (j === 0) {
+          edgeCoordinates.push({ coordinates: [i, j], direction: DIRECTIONS.RIGHT });
+        }
+        if (i === inputArray.length - 1) {
+          edgeCoordinates.push({ coordinates: [i, j], direction: DIRECTIONS.UP });
+        }
+        if (j === inputArray[0].length - 1) {
+          edgeCoordinates.push({ coordinates: [i, j], direction: DIRECTIONS.LEFT });
+        }
       }
     }
   }
+
+  let maxEnergisedCount = 0;
+
+  // Start by just brute forcing all options, its not that big... right?
+
+  // All the below is now in a for loop, for all edge coordinates
+  let count = 0;
+  edgeCoordinates.forEach(({ coordinates, direction }) => {
+    console.log(`Progress: ${count}/${edgeCoordinates.length}`);
+    let traversedTiles = new Set();
+
+    let lightBeamPositions = [
+      {
+        key: 0,
+        coordinates: coordinates,
+        startCoordinates: coordinates,
+        direction: direction,
+        isFinished: false,
+      },
+    ];
+
+    // Determine which direction the beam should be inside the loop.
+    let handler = handleDirectionChange(inputArray[coordinates[0]][coordinates[1]], lightBeamPositions[0]);
+    if (handler.newLightBeam) {
+      lightBeamPositions.push(handler.newLightBeam);
+    }
+
+    traversedTiles.add(coordinates[0] + "," + coordinates[1]);
+    // Store whether we have been to this spot with these steps before, and break if so
+    let cache = [];
+
+    do {
+      // Take a step to the right
+      takeStep(lightBeamPositions);
+    } while (lightBeamPositions.some((lightBeam) => !lightBeam.isFinished));
+
+    maxEnergisedCount = Math.max(maxEnergisedCount, traversedTiles.size);
+
+    count++;
+
+    function takeStep() {
+      for (const lightBeam of lightBeamPositions.filter((beam) => !beam.isFinished)) {
+        let [newI, newJ] = step(lightBeam.direction, ...lightBeam.coordinates);
+        let key = newI + "," + newJ + "," + lightBeam.direction;
+
+        // If the beam has exited or is back where it started (not sure this 2nd one is right), then we can say its finished.
+        if (
+          newI < 0 ||
+          newI > inputArray.length - 1 ||
+          newJ < 0 ||
+          newJ > inputArray[1].length - 1 ||
+          cache.includes(key)
+          // (newI === lightBeam.startCoordinates[0] && newJ === lightBeam.startCoordinates[1])
+        ) {
+          lightBeam.isFinished = true;
+          break;
+        }
+        cache.push(key);
+
+        lightBeam.coordinates = [newI, newJ];
+        traversedTiles.add(newI + "," + newJ);
+
+        let handler = handleDirectionChange(inputArray[newI][newJ], lightBeam);
+        if (handler.newLightBeam) {
+          lightBeamPositions.push(handler.newLightBeam);
+        }
+      }
+    }
+  });
+
+  console.log({ day: 16, part: 2, value: maxEnergisedCount });
 }
 
 function getOppositeDirection(direction) {
