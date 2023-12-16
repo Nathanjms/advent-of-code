@@ -68,24 +68,36 @@ export function partTwo(input = null) {
    */
 
   // Store the original dish, being careful not to mutate it.
-  const originalDish = cloneArray(dish);
-  let cache = {};
+  const originalDishKey = dish.join("");
+  let dishArrangementCycle = {
+    originalDishKey: 0,
+  };
   let cycle = 0;
   while (cycle < 1_000_000_000) {
-    dish = handleCycle(dish);
-    cycle++;
-    if (dish.join("") === originalDish.join("")) {
+    const key = dish.join("");
+    if (key in dishArrangementCycle) {
       break;
     }
+    dishArrangementCycle[key] = cycle;
+    dish = handleCycle(dish, cycle);
+    cycle++;
   }
-  console.log({ cycle });
 
-  // We can simply go through, and for each 0, work out where it ends up, and add that.
+  // After the first x (dishArrangementCycle[dish.join("")]), it repeats every repeatCycleNumber - x times
+  console.log({ cycle, first: dishArrangementCycle[dish.join("")] });
+
+  // So we now run it 1,000,000,000 % repeatCycleNumber - x times more times!
+  let timesToRun =
+    (1_000_000_000 - dishArrangementCycle[dish.join("")]) % (cycle - dishArrangementCycle[dish.join("")]);
+  for (let i = 0; i < timesToRun; i++) {
+    dish = handleCycle(dish, cycle);
+  }
+
   let totalLoad = 0;
   for (let i = 0; i < dish.length; i++) {
     for (let j = 0; j < dish[i].length; j++) {
       if (dish[i][j] === "O") {
-        totalLoad += dish.length - getNewRowIndex(i, j);
+        totalLoad += dish.length - i;
       }
     }
   }
@@ -93,30 +105,11 @@ export function partTwo(input = null) {
   console.log({ day: 14, part: 2, value: totalLoad });
 
   function handleCycle(dish) {
-    const key = dish.join("");
-    if (key in cache) {
-      return cache[key];
-    }
-
     // Now the hard bit! We did pt 1 without redrawing the dish, so we need to now do that I think :(
-    display(dish);
-    console.log("Tilting dish north");
-    console.log("");
     dish = tiltDishNorth(dish);
-    display(dish);
-    console.log("Tilting dish west");
-    console.log("");
     dish = tiltDishWest(dish);
-    display(dish);
-    console.log("Tilting dish south");
-    console.log("");
     dish = tiltDishSouth(dish);
-    display(dish);
-    console.log("Tilting dish east");
-    console.log("");
     dish = tiltDishEast(dish);
-    display(dish);
-    cache[key] = dish;
     return dish;
   }
 
@@ -138,6 +131,8 @@ export function partTwo(input = null) {
   }
 
   function tiltDishWest(dish) {
+    // West can just be an array flip of east, then move the index back!
+
     // Go through each one, and get where it ends up. Replace the old spot with a '.' and the new one with an 'O'.
     let newDish = cloneArray(dish);
 
@@ -160,7 +155,7 @@ export function partTwo(input = null) {
     // Go through each one, and get where it ends up. Replace the old spot with a '.' and the new one with an 'O'.
     let newDish = cloneArray(dish);
 
-    for (let i = 0; i < dish.length; i++) {
+    for (let i = dish.length - 1; i >= 0; i--) {
       for (let j = 0; j < dish[i].length; j++) {
         if (dish[i][j] === "O") {
           const newRowIndex = getNewSouthRowIndex(i, j, dish);
@@ -178,12 +173,11 @@ export function partTwo(input = null) {
     let newDish = cloneArray(dish);
 
     for (let i = 0; i < dish.length; i++) {
-      for (let j = 0; j < dish[i].length; j++) {
+      for (let j = dish[i].length - 1; j >= 0; j--) {
         if (dish[i][j] === "O") {
           const newColIndex = getNewEastColIndex(i, j, dish);
           newDish[i][j] = ".";
           newDish[i][newColIndex] = "O";
-          display(newDish);
         }
       }
     }
@@ -191,9 +185,13 @@ export function partTwo(input = null) {
     return newDish;
   }
 
-  function getNewNorthRowIndex(rowIndex, colIndex, dish) {
+  function getNewNorthRowIndex(rowIndex, colIndex, dish, flip = false) {
     if (rowIndex === 0) return 0; // Can't get any better
-    const column = dish.map((line) => line[colIndex]).slice(0, rowIndex + 1); // Get the column from the top down to the point we are looking at
+    let column = dish.map((line) => line[colIndex]);
+    if (flip) {
+      column = column.slice().reverse();
+    }
+    column = column.slice(0, rowIndex + 1); // Get the column from the top down to the point we are looking at
 
     // Check if there is a hash (blocker)
     const hashIndex = column.lastIndexOf("#");
@@ -206,9 +204,13 @@ export function partTwo(input = null) {
     return hashIndex + column.slice(hashIndex).filter((val) => val === "O").length;
   }
 
-  function getNewWestColIndex(rowIndex, colIndex, dish) {
+  function getNewWestColIndex(rowIndex, colIndex, dish, flip = false) {
     if (colIndex === 0) return 0; // Can't get any better
-    const row = dish[rowIndex].slice(0, colIndex + 1); // Get the row from the left to the point we are looking at
+    let row = dish[rowIndex];
+    if (flip) {
+      row = row.slice().reverse();
+    }
+    row = row.slice(0, colIndex + 1); // Get the row from the left to the point we are looking at
 
     // Check if there is a hash (blocker)
     const hashIndex = row.lastIndexOf("#");
@@ -217,42 +219,18 @@ export function partTwo(input = null) {
     if (hashIndex === -1) {
       return row.filter((val) => val === "O").length - 1;
     }
-    // Is a hash - offset by the number of O's below it
+    // Is a hash - offset by the number of O's to the right of it
     return hashIndex + row.slice(hashIndex).filter((val) => val === "O").length;
   }
 
-  /**
-   * South - means that the rowIndex is INCREASING
-   * @returns
-   */
   function getNewSouthRowIndex(rowIndex, colIndex, dish) {
-    if (rowIndex === dish.length - 1) return dish.length - 1; // Can't get any better, already on the edge
-    const column = dish.map((line) => line[colIndex]).slice(rowIndex); // Get from point to the end
-
-    // Check if there is a hash (blocker)
-    const hashIndex = column.indexOf("#");
-
-    // No hash - just offset by the number of O's AHEAD of it
-    if (hashIndex === -1) {
-      return dish.length - column.filter((val) => val === "O").length;
-    }
-    // Start at the rowIndex and we can add as many gaps up to the hashIndex
-    return rowIndex + (hashIndex - column.slice(0, hashIndex).filter((val) => val === "O").length);
+    // South can just be an array flip of North, then move the index back!
+    return dish.length - 1 - getNewNorthRowIndex(dish.length - 1 - rowIndex, colIndex, dish, true);
   }
 
   function getNewEastColIndex(rowIndex, colIndex, dish) {
-    if (colIndex === dish[rowIndex].length - 1) return dish[rowIndex].length - 1; // Can't get any better
-    const row = dish[rowIndex].slice(colIndex);
-
-    // Check if there is a hash (blocker)
-    const hashIndex = row.indexOf("#");
-
-    // No hash - go to the end then offset by the number of 0's (note row includes itself)
-    if (hashIndex === -1) {
-      return dish[rowIndex].length - row.filter((val) => val === "O").length;
-    }
-    // Is a hash - move it left up to hash for as many places as there are available (ie. no 0s)
-    return colIndex + ((hashIndex - colIndex) - row.slice(colIndex, hashIndex).filter((val) => val === "O").length);
+    // East can just be an array flip of West, then move the index back!
+    return dish[rowIndex].length - 1 - getNewWestColIndex(rowIndex, dish[rowIndex].length - 1 - colIndex, dish, true);
   }
 }
 
