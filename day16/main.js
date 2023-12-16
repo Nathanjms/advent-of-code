@@ -101,7 +101,7 @@ export function partTwo(input = null) {
   // All the below is now in a for loop, for all edge coordinates
   let count = 0;
   edgeCoordinates.forEach(({ coordinates, direction }) => {
-    console.log(`Progress: ${count}/${edgeCoordinates.length}`);
+    // console.log(`Progress: ${count}/${edgeCoordinates.length}`);
     let traversedTiles = new Set();
 
     let lightBeamPositions = [
