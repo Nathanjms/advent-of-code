@@ -22,14 +22,14 @@ fi
 cp -r dayx day$day
 
 # Go into the file main.js.stub and change "day: ''" to "day: 'day$day'", and change "dayx" to "day$day"
-sed -i '' "s/dayx/day$day/g" day$day/main.js.stub
-sed -i '' "s/day: ''/day: $day/g" day$day/main.js.stub
+sed -i'' "s/dayx/day$day/g" day$day/main.js.stub
+sed -i'' "s/day: ''/day: $day/g" day$day/main.js.stub
 
 #  Then change the name of the file main.js.stub to main.js
 mv day$day/main.js.stub day$day/main.js
 
 # Go into ./main.js, and add a new line "import * as dayx from "./dayx/main.js";" on the first empty line, then a gap after
-sed -i '' "/^$/i\\
+sed -i'' "/^$/i\\
 import * as day$day from \"./day$day/main.js\";\\
 " ./main.js
 
