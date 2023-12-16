@@ -20,8 +20,11 @@ export function partOne(input = null) {
     { key: 0, coordinates: [0, 0], startCoordinates: [0, 0], direction: DIRECTIONS.RIGHT, isFinished: false },
   ]; // Start with single beam at 0,0
 
-  // Note: We need to handle 0,0 to determine which direction the beam should be inside the loop. For ease, I've manually done this:
-  lightBeamPositions[0].direction = DIRECTIONS.DOWN;
+  // We need to handle 0,0 to determine which direction the beam should be inside the loop.
+  let handler = handleDirectionChange(inputArray[0][0], lightBeamPositions[0]);
+  if (handler.newLightBeam) {
+    lightBeamPositions.push(handler.newLightBeam);
+  }
 
   traversedTiles.add("0,0");
   // Store whether we have been to this spot with these steps before, and break if so
@@ -77,8 +80,11 @@ export function partTwo(input = null) {
     { key: 0, coordinates: [0, 0], startCoordinates: [0, 0], direction: DIRECTIONS.RIGHT, isFinished: false },
   ]; // Start with single beam at 0,0
 
-  // Note: We need to handle 0,0 to determine which direction the beam should be inside the loop. For ease, I've manually done this:
-  lightBeamPositions[0].direction = handleInitialDirection();
+  // We need to handle 0,0 to determine which direction the beam should be inside the loop.
+  let handler = handleDirectionChange(inputArray[0][0], lightBeamPositions[0]);
+  if (handler.newLightBeam) {
+    lightBeamPositions.push(handler.newLightBeam);
+  }
 
   traversedTiles.add("0,0");
   // Store whether we have been to this spot with these steps before, and break if so
@@ -113,7 +119,7 @@ export function partTwo(input = null) {
       lightBeam.coordinates = [newI, newJ];
       traversedTiles.add(newI + "," + newJ);
 
-      let handler = handleDirectionChange(inputArray[i][j], lightBeam);
+      let handler = handleDirectionChange(inputArray[newI][newJ], lightBeam);
       if (handler.newLightBeam) {
         lightBeamPositions.push(handler.newLightBeam);
       }
