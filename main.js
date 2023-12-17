@@ -50,5 +50,5 @@ day15.partOne();
 day15.partTwo();
 day16.partOne();
 day16.partTwo();
-day17.partOne("input");
-day17.partTwo();
+day17.partOne();
+day17.partTwo("input");
