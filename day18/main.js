@@ -9,16 +9,6 @@ const DIRECTIONS = {
   D: [1, 0],
 };
 
-const AVAILABLE_OUT_DIRECTIONS = {
-  "|": [DIRECTIONS.U, DIRECTIONS.D],
-  "-": [DIRECTIONS.L, DIRECTIONS.R],
-  L: [DIRECTIONS.U, DIRECTIONS.R],
-  J: [DIRECTIONS.U, DIRECTIONS.L],
-  7: [DIRECTIONS.D, DIRECTIONS.L],
-  F: [DIRECTIONS.D, DIRECTIONS.R],
-  ".": [],
-};
-
 export function partOne(input = null) {
   var input = input || inputPath;
   input = fs.readFileSync(input, "utf8");
@@ -29,104 +19,40 @@ export function partOne(input = null) {
     color = color.slice(2, -1);
     return { dir, steps, color };
   });
+
   let path = [];
   let currCoordinate = [0, 0];
   // a hash indicates a path position:
   path.push([...currCoordinate]);
+  let boundaryPoints = 0;
   for (let i = 0; i < digPlan.length; i++) {
     // move the number if steps in the direction, adding this to the path array
     let { dir, steps } = digPlan[i];
-    for (let n = 1; n <= steps; n++) {
-      currCoordinate[0] += DIRECTIONS[dir][0];
-      currCoordinate[1] += DIRECTIONS[dir][1];
-      // if we are back at the start, break:
-      if (currCoordinate.toString() === "0,0") {
-        break;
-      }
-      path.push([...currCoordinate]);
-    }
+    currCoordinate[0] += DIRECTIONS[dir][0] * Number(steps);
+    currCoordinate[1] += DIRECTIONS[dir][1] * Number(steps);
+    boundaryPoints += Number(steps);
+    path.push([...currCoordinate]);
   }
 
-  // now we have the path, build out the grid by filling gaps with '.'.
-  // first find the max size of the grid:
-  let maxI = Math.max(...path.map(([i, _]) => i));
-  let minI = Math.min(...path.map(([i, _]) => i));
-  let maxJ = Math.max(...path.map(([_, j]) => j));
-  let minJ = Math.min(...path.map(([_, j]) => j));
+  /* Now let's use pick's theorem and the shoelace formula, wish I'd learned it for day 10 now */
+  // A = 1/2 * (SUM from 0 < i <= n of x_i(y_i+1 - y_i-1) )
+  // Unsure if we need to adapt because we start from 0 and go down for y, but let's see!
 
-  maxI = maxI - minI;
-  maxJ = maxJ - minJ;
-  // now build it. I'm going to recreate the pipes etc from day 10 to then reuse that logic for getting the number of interior points.
-  let grid = Array.from({ length: maxI + 1 }).map(() => Array.from({ length: maxJ + 1 }).fill("."));
-  for (let i = 0; i < path.length; i++) {
-    let prevElement = i === 0 ? path[path.length - 1] : path[i - 1];
-    let nextElement = i === path.length - 1 ? path[0] : path[i + 1];
-    const element = path[i];
-
-    // dy is opposite because rows decrease!
-    let prevElementDiff = [prevElement[0] - element[0], prevElement[1] - element[1]];
-    const nextElementDiff = [nextElement[0] - element[0], nextElement[1] - element[1]];
-
-    // Can either be |, -, L, F, J, 7
-
-    // Find the available direction with both the diffs direction
-    let type = null;
-    for (const direction in AVAILABLE_OUT_DIRECTIONS) {
-      const element = AVAILABLE_OUT_DIRECTIONS[direction];
-      // If both are there then it's the right type of symbol
-      if (
-        element.findIndex((el) => el.toString() === prevElementDiff.toString()) !== -1 &&
-        element.findIndex((el) => el.toString() === nextElementDiff.toString()) !== -1
-      ) {
-        type = direction;
-        break; // found it!
-      }
-    }
-    if (!type) {
-      throw Error("no dir :0");
-    }
-    grid[element[0] - minI][element[1] - minJ] = type;
+  let sum = 0;
+  for (let i = 1; i < path.length; i++) {
+    sum += path[i][1] * (path[(i + 1) % path.length][0] - path[i - 1][0]);
   }
+  let area = 0.5 * sum;
 
-  // Now we can loop through each element and check if it is trapped.
-  // Note we skip the boundaries as they can't be trapped by definition of being on the edge
-  // At most they will be coordinate
-  const trappedElements = [];
-  for (let i = 1; i < grid.length - 1; i++) {
-    for (let j = 1; j < grid[0].length - 1; j++) {
-      console.log({ i, j });
-      if (path.findIndex((el) => el.toString() === i + "," + j) !== -1) {
-        // If this is a boundary, it can't be a trapped element.
-        continue;
-      }
-      if (getNumberOfPassThroughs(i, j, grid[i], path) % 2 === 1) {
-        trappedElements.push(i + "," + j);
-      }
-    }
-  }
+  /**
+   * Pick's theorem says that A = i + b / 2 - 1, where A is the area of the polygon, i is the number of internal integer points, and b is
+   * the number of boundary integer points.
+   * Rearrange this gives: i = A - 0.5b + 1
+   * Then adding on the boundary points b gives i = A + 0.5b + 1
+   */
+  let numPoints = area + 0.5 * boundaryPoints + 1;
 
-  function getNumberOfPassThroughs(i, j, line, path) {
-    // Go from this point to the end by incrementing j
-    let sum = 0;
-    let lineIndex = j;
-
-    while (lineIndex < line.length) {
-      /**
-       * If it is a boundary point, then it can be considered as crossing if it is a | (easy), or if it is F---J or L---7, where '-' is any
-       * natural number N. Because we are checking boundary coordinates only, we know there MUST be a J if there is an F, and a 7 if an L.
-       * Therefore, below we only need to check three: |, J, L
-       */
-      if (path.findIndex((el) => el.toString() === i + "," + lineIndex) && ["|", "J", "L"].includes(line[lineIndex])) {
-        sum++;
-      }
-      lineIndex++;
-    }
-    return sum;
-  }
-  // count combo for answer
-  const answer = trappedElements.length + path.length;
-
-  console.log({ day: 18, part: 1, value: answer });
+  console.log({ day: 18, part: 1, value: numPoints });
 }
 
 export function partTwo(input = null) {
@@ -134,10 +60,52 @@ export function partTwo(input = null) {
   input = fs.readFileSync(input, "utf8");
   var inputArray = input.trim().split("\n");
 
-  console.log({ day: 18, part: 2, value: "todo" });
-}
+  const COLOR_MAP = {
+    0: "R",
+    1: "D",
+    2: "L",
+    3: "U",
+  };
 
-function display(grid) {
-  console.log(grid.map((val) => val.join("")).join("\n"));
-  console.log();
+  let digPlan = inputArray.map((v) => {
+    var [_, _, color] = v.split(" ");
+    color = color.slice(2, -1);
+    const steps = parseInt(color.slice(0, 5), 16);
+    const dir = COLOR_MAP[color.slice(-1)];
+    return { dir, steps, color };
+  });
+
+  let path = [];
+  let currCoordinate = [0, 0];
+  // a hash indicates a path position:
+  path.push([...currCoordinate]);
+  let boundaryPoints = 0;
+  for (let i = 0; i < digPlan.length; i++) {
+    // move the number if steps in the direction, adding this to the path array
+    let { dir, steps } = digPlan[i];
+    currCoordinate[0] += DIRECTIONS[dir][0] * Number(steps);
+    currCoordinate[1] += DIRECTIONS[dir][1] * Number(steps);
+    boundaryPoints += Number(steps);
+    path.push([...currCoordinate]);
+  }
+
+  /* Now let's use pick's theorem and the shoelace formula, wish I'd learned it for day 10 now */
+  // A = 1/2 * (SUM from 0 < i <= n of x_i(y_i+1 - y_i-1) )
+  // Unsure if we need to adapt because we start from 0 and go down for y, but let's see!
+
+  let sum = 0;
+  for (let i = 1; i < path.length; i++) {
+    sum += path[i][1] * (path[(i + 1) % path.length][0] - path[i - 1][0]);
+  }
+  let area = 0.5 * sum;
+
+  /**
+   * Pick's theorem says that A = i + b / 2 - 1, where A is the area of the polygon, i is the number of internal integer points, and b is
+   * the number of boundary integer points.
+   * Rearrange this gives: i = A - 0.5b + 1
+   * Then adding on the boundary points b gives i = A + 0.5b + 1
+   */
+  let numPoints = area + 0.5 * boundaryPoints + 1;
+
+  console.log({ day: 18, part: 2, value: numPoints });
 }
