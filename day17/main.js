@@ -112,7 +112,6 @@ export function partTwo(input = null) {
   while (queue.length) {
     // Get the one with the lowest heat loss
     let { coordinate, heatLoss, currDirection, numSteps } = queue.shift();
-    console.log({ heatLoss });
     // We've found it!
     if (coordinate.join(",") === endCoordinate.join(",") && numSteps >= 4) {
       minHeatLoss = heatLoss;
