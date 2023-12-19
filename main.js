@@ -16,6 +16,7 @@ import * as day15 from "./day15/main.js";
 import * as day16 from "./day16/main.js";
 import * as day17 from "./day17/main.js";
 import * as day18 from "./day18/main.js";
+import * as day19 from "./day19/main.js";
 
 day1.partOne();
 day1.partTwo();
@@ -54,3 +55,5 @@ day17.partOne();
 day17.partTwo();
 day18.partOne();
 day18.partTwo();
+day19.partOne();
+day19.partTwo();
