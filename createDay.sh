@@ -39,7 +39,7 @@ sed -i '' "/^$/i\\
 import * as day$day from \"./day$day/main.js\";\\
 " ./main.js
 else
-sed "/^$/i\\
+sed -i "/^$/i\\
 import * as day$day from \"./day$day/main.js\";\\
 " ./main.js
 fi
