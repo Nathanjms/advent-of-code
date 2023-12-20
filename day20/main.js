@@ -14,35 +14,10 @@ const PULSES = {
 };
 
 export function partOne(input = null) {
-  var input = input || inputPath;
+  var input = input || inputPath + "2";
   input = fs.readFileSync(input, "utf8");
-  const modulesByKey = input
-    .trim()
-    .split("\n")
-    .reduce((accum, line) => {
-      let [module, destModules] = line.split(" -> ");
-      console.log({ module, destModules });
-      if (module === "broadcaster") {
-        accum[module] = {
-          type: MODULE_TYPES.BROADCASTER,
-          outputs: destModules.split(", "),
-          state: null,
-        };
-      } else {
-        accum[module.slice(1)] = {
-          type: module.slice(0, 1),
-          outputs: destModules.split(", "),
-          state: null,
-          memory: null,
-        };
-      }
-      return accum;
-    }, {});
+  const modulesByKey = parseInput(input);
 
-  console.log(modulesByKey);
-
-  // Start the queue with a button press
-  const queue = [{ type: PULSES.LOW, destinationKey: "broadcaster", fromKey: null }];
   // Start with a list of all modules being set to 'off' (0)
   const moduleStates = {};
   for (const moduleKey in modulesByKey) {
@@ -51,31 +26,76 @@ export function partOne(input = null) {
 
   let pulses = { [PULSES.HIGH]: 0, [PULSES.LOW]: 0 };
 
+  const queue = [];
+
   let presses = 0;
   while (presses < 1000) {
     // This is cyclic, so we don't need to do this 1000 times. Instead, find when it repeats and look at the modulo again
+    // Start the queue with a button press each cycle
+    presses++;
+    queue.push({ type: PULSES.LOW, destinationKey: "broadcaster", fromKey: null });
     while (queue.length) {
-      console.log({ queue });
       let next = queue.shift();
       sendPulse(next.type, next.destinationKey, next.fromKey);
     }
 
-    if (Object.values(moduleStates).every((val) => val === 1)) {
-      // We're back at the start!
-      debugger;
+    // if (Object.values(moduleStates).every((val) => val === 1)) {
+    //   // We're back at the start!
+    //   debugger;
+    //   break;
+    // }
+
+    if (isBackToOriginal()) {
       break;
     }
-    presses++;
+    console.log("presses: ", presses);
   }
 
-  console.log({ day: 20, part: 1, value: presses });
+  // Divide and modulo
+  let cycles = Math.floor(1000 / presses);
+  let remainder = 1000 % presses;
+  // We were back to the beginning early, so we can simply multiple the counts and then add
+  pulses[PULSES.HIGH] = pulses[PULSES.HIGH] * cycles;
+  pulses[PULSES.LOW] = pulses[PULSES.LOW] * cycles;
+
+  // Then finish off with any manual button presses
+  while (remainder > 0) {
+    queue.push({ type: PULSES.LOW, destinationKey: "broadcaster", fromKey: null });
+    while (queue.length) {
+      let next = queue.shift();
+      sendPulse(next.type, next.destinationKey, next.fromKey);
+    }
+    remainder--;
+  }
+
+  let result = Object.values(pulses).reduce((a, b) => a * b, 1);
+
+  console.log({ day: 20, part: 1, value: result });
 
   // Now start the cycle by pressing the button, which sends a LOW PULSE to broadcast
+
+  function isBackToOriginal() {
+    // Back to original if all '%' modules have state 1 AND if all '&' type modules have each of their memory states as 0
+    for (const key in modulesByKey) {
+      let mod = modulesByKey[key];
+      if (mod.type === MODULE_TYPES.FLIP_FLOP && mod.state) {
+        return false;
+      }
+      if (mod.type === MODULE_TYPES.CONJUNCTION && Object.values(mod.memory).some((v) => v === 1)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   function sendPulse(pulseType, destinationKey, inputKey) {
     pulses[pulseType]++;
     // Bunch of if statements to handle each one.
     const module = modulesByKey[destinationKey];
+
+    if (!module) {
+      return; // Untyped module, skip?
+    }
 
     if (module.type === MODULE_TYPES.BROADCASTER) {
       // Send to all children by adding them to the queue in order
@@ -145,4 +165,28 @@ export function partTwo(input = null) {
     .map((line) => line.split(""));
 
   console.log({ day: 20, part: 2, value: "todo" });
+}
+
+function parseInput(input) {
+  return input
+    .trim()
+    .split("\n")
+    .reduce((accum, line) => {
+      let [module, destModules] = line.split(" -> ");
+      if (module === "broadcaster") {
+        accum[module] = {
+          type: MODULE_TYPES.BROADCASTER,
+          outputs: destModules.split(", "),
+          state: null,
+        };
+      } else {
+        accum[module.slice(1)] = {
+          type: module.slice(0, 1),
+          outputs: destModules.split(", "),
+          state: null,
+          memory: null,
+        };
+      }
+      return accum;
+    }, {});
 }
