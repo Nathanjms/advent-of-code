@@ -156,13 +156,11 @@ export function partTwo(input = null) {
   for (let i = 0; i < sandBlocks.length; i++) {
     let fallingBlocks = new Set();
     const queue = [sandBlocks[i]];
-    /* Delete the block and manually compute any that would be affected first: */
-
     while (queue.length) {
       let block = queue.shift(1);
       let brickKey = block[2];
       fallingBlocks.add(block[2]);
-      // First see if any blocks would start falling if we removed this block
+
       // Are there any this one is holding up?
       const sandBlocksBeingHeldUp = sandBlocks
         .filter((b) => b[0][2] === block[1][2] + 1)
