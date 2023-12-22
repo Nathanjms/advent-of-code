@@ -61,6 +61,7 @@ day19.partOne();
 day19.partTwo();
 day20.partOne();
 // day20.partTwo("input");
-console.log({ day: 20, part: 2, value: "Input and Manual Run Required" }); // Input must be day 20's for this to workday21.partOne();
-day21.partOne("input");
-day21.partTwo();
+console.log({ day: 20, part: 2, value: "Input and Manual Run Required" }); // Input must be day 20's for this to work
+day21.partOne();
+day21.partTwo("input");
+console.log({ day: 21, part: 2, value: "Input and Manual Run Required" }); // Input must be day 21's for this to work
