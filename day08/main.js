@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const inputPath = "./day8/example-input";
+const inputPath = "./day08/example-input";
 // const inputPath = "./input";
 
 export function partOne() {

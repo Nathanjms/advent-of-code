@@ -1,7 +1,7 @@
 import fs from "fs";
 import GameLine from "./GameLine.js";
 
-const inputPath = "./day2/example-input";
+const inputPath = "./day02/example-input";
 
 export function partOne() {
   var input = fs.readFileSync(inputPath, "utf8");

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/nathanjms/advent-of-code-2023/go/day1"
+	"github.com/nathanjms/advent-of-code-2023/go/day01"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 
 	switch *dayPtr {
 	case 1:
-		day1.PartOne()
+		day01.PartOne()
 	default:
 		panic("Day not implemented")
 	}

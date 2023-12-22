@@ -1,4 +1,4 @@
-package day1
+package day01
 
 import (
 	"strconv"
@@ -8,7 +8,7 @@ import (
 	"github.com/nathanjms/advent-of-code-2023/go/pkg/sharedstruct"
 )
 
-var inputPath = "./day1/example-input1"
+var inputPath = "./day01/example-input1"
 
 // var contents string
 var contentsArray []string
