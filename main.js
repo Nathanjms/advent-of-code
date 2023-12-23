@@ -69,5 +69,5 @@ day21.partOne();
 console.log({ day: 21, part: 2, value: "Input and Manual Run Required" }); // Input must be day 21's for this to work
 day22.partOne();
 day22.partTwo();
-day23.partOne("input");
-day23.partTwo();
+day23.partOne();
+day23.partTwo("input");
