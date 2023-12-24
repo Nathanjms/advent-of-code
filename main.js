@@ -21,6 +21,8 @@ import * as day20 from "./day20/main.js";
 import * as day21 from "./day21/main.js";
 import * as day22 from "./day22/main.js";
 import * as day23 from "./day23/main.js";
+import * as day24 from "./day24/main.js";
+
 
 day01.partOne();
 day01.partTwo();
@@ -70,4 +72,6 @@ console.log({ day: 21, part: 2, value: "Input and Manual Run Required" }); // In
 day22.partOne();
 day22.partTwo();
 day23.partOne();
-day23.partTwo("input");
+day23.partTwo();
+day24.partOne("input");
+day24.partTwo();
