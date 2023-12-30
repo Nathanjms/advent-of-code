@@ -10,8 +10,8 @@ export function partOne(input = null) {
   // for each line, find the '+c' value of their equation
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
-    let m = point.vel[1] / point.vel[0];
-    let c = point.pos[1] - m * point.pos[0];
+    let m = Number(point.vel[1]) / Number(point.vel[0]);
+    let c = Number(point.pos[1]) - m * point.pos[0];
     point["c"] = c;
     point["m"] = m;
   }
@@ -42,13 +42,14 @@ export function partOne(input = null) {
         continue;
       }
 
-      let [x, y] = [(el2.c - el1.c) / (el1.m - el2.m), el1.c + ((el2.c - el1.c) / (el1.m - el2.m)) * el1.m];
+      const x = (el2.c - el1.c) / (el1.m - el2.m);
+      const y = x * el1.m + el1.c;
 
-      // check if we have gone into the past to get this:
-      if ((el1.vel[0] < 0 && x > el1.pos[0]) || (el2.vel[0] < 0 && y > el1.pos[0])) {
-        continue;
-      }
-      if (x >= MIN && x <= MAX && y >= MIN && y <= MAX) {
+      // check if we have gone into the past to get this - if the point is increasing and has gone down, or vice versa (for both x and y)
+      const el1Time = (x - el1.pos[0]) / el1.vel[0];
+      const el2Time = (x - el2.pos[0]) / el2.vel[0];
+
+      if (el1Time >= 0 && el2Time >= 0 && x >= MIN && x <= MAX && y >= MIN && y <= MAX) {
         seenPoints++;
       }
     }
