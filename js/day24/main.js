@@ -1,4 +1,5 @@
 import fs from "fs";
+import { init as z3Init } from "z3-solver";
 
 const inputPath = "./day24/example-input";
 
@@ -20,11 +21,11 @@ export function partOne(input = null) {
   let compared = new Set();
   let seenPoints = 0;
 
-  const MIN = 200000000000000;
-  const MAX = 400000000000000;
+  // const MIN = 200000000000000;
+  // const MAX = 400000000000000;
 
-  // const MIN = 7;
-  // const MAX = 21;
+  const MIN = 7;
+  const MAX = 21;
 
   for (let i = 0; i < points.length; i++) {
     const el1 = points[i];
@@ -56,20 +57,55 @@ export function partOne(input = null) {
     compared.add(i);
   }
 
-  console.log(seenPoints);
-
   console.log({ day: 24, part: 1, value: seenPoints });
 }
 
-export function partTwo(input = null) {
+export async function partTwo(input = null) {
   var input = input || inputPath;
   input = fs.readFileSync(input, "utf8");
-  var inputArray = input
-    .trim()
-    .split("\n")
-    .map((line) => line.split(""));
+  var hailstones = parseInput(input);
+  const { Context, em } = await z3Init();
+  const { Real, Solver } = Context("main");
 
-  console.log({ day: 24, part: 2, value: "todo" });
+  // We want to now write the equations to then solve. the rock's x,y,x and velocity in x y z will be denoted below:
+  const x = Real.const("x");
+  const y = Real.const("y");
+  const z = Real.const("z");
+
+  const v_x = Real.const("v_x");
+  const v_y = Real.const("v_y");
+  const v_z = Real.const("v_z");
+
+  const solver = new Solver();
+
+  for (let i = 0; i < hailstones.length; i++) {
+    const h = hailstones[i];
+    const tVal = Real.const("t_" + i);
+
+    solver.add(tVal.ge(0));
+
+    // 3 equations for each rock:
+    solver.add(tVal.mul(v_x).add(x).eq(tVal.mul(h.vel[0]).add(h.pos[0])));
+    solver.add(tVal.mul(v_y).add(y).eq(tVal.mul(h.vel[1]).add(h.pos[1])));
+    solver.add(tVal.mul(v_z).add(z).eq(tVal.mul(h.vel[2]).add(h.pos[2])));
+  }
+
+  const satisfied = await solver.check();
+
+  if (!satisfied) {
+    throw Error("Not satisfied the equations :c");
+  }
+
+  const model = solver.model();
+
+  let result = 0;
+  [x, y, z].forEach((val) => {
+    result += Number(model.eval(val));
+  });
+
+  em.PThread.terminateAllThreads(); // For some reason, node process doesn't stop unless I put this in? src: https://github.com/Z3Prover/z3/issues/7070#issuecomment-1871017371
+
+  console.log({ day: 24, part: 2, value: result });
 }
 
 function parseInput(input) {
