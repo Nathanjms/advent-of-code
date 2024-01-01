@@ -22,7 +22,7 @@ import * as day21 from "./day21/main.js";
 import * as day22 from "./day22/main.js";
 import * as day23 from "./day23/main.js";
 import * as day24 from "./day24/main.js";
-
+import * as day25 from "./day25/main.js";
 
 day01.partOne();
 day01.partTwo();
@@ -74,4 +74,7 @@ day22.partTwo();
 day23.partOne();
 day23.partTwo();
 day24.partOne();
-day24.partTwo("input");
+// await day24.partTwo();
+console.log({ day: 24, part: 2, value: "Manual Run Required" }); // Is a bit slow so will comment out
+day25.partOne();
+day25.partTwo();
