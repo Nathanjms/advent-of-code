@@ -66,9 +66,39 @@ func partOne(contents string) {
 }
 
 func partTwo(contents string) {
+	currentPositionA := [2]int{0, 0}
+	currentPositionB := [2]int{0, 0}
+	visited := map[[2]int]int{
+		currentPositionA: 1,
+	}
+
+	visitCount := 1 // Start on 1 house UNIQUELY visited
+
+	for i, direction := range contents {
+		if i%2 == 0 {
+			currentPositionA[0] += DIRECTION_MAPPINGS[string(direction)][0]
+			currentPositionA[1] += DIRECTION_MAPPINGS[string(direction)][1]
+
+			// If we haven't visited this position before, increment the visit count and add it to the map:
+			if _, ok := visited[currentPositionA]; !ok {
+				visitCount++
+				visited[currentPositionA] = 1
+			}
+		} else {
+			currentPositionB[0] += DIRECTION_MAPPINGS[string(direction)][0]
+			currentPositionB[1] += DIRECTION_MAPPINGS[string(direction)][1]
+			// If we haven't visited this position before, increment the visit count and add it to the map:
+			if _, ok := visited[currentPositionB]; !ok {
+				visitCount++
+				visited[currentPositionB] = 1
+			}
+		}
+
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   3,
 		Part:  1,
-		Value: "TODO",
+		Value: visitCount,
 	})
 }
