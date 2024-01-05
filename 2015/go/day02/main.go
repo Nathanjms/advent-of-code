@@ -54,9 +54,22 @@ func partOne(contents []string) {
 }
 
 func partTwo(contents []string) {
+	totalToOrder := 0
+
+	for _, line := range contents {
+		// Explode line by 'x':
+		temp := strings.Split(line, "x")
+		length, _ := strconv.Atoi(temp[0])
+		width, _ := strconv.Atoi(temp[1])
+		height, _ := strconv.Atoi(temp[2])
+
+		smallestFace := 2 * min(length+width, width+height, height+length)
+		volume := length * width * height
+		totalToOrder += smallestFace + volume
+	}
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   2,
 		Part:  1,
-		Value: "TODO",
+		Value: totalToOrder,
 	})
 }
