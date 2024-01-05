@@ -1,20 +1,46 @@
 package main
 
 import (
-	"fmt"
+	"aoc-shared/pkg/sharedcode"
+	"aoc-shared/pkg/sharedstruct"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
+func getCurrentDirectory() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dirname := filepath.Dir(filename)
+	return dirname
+}
+
+// Default Input path is current directory + example-input
+var inputPath = filepath.Join(getCurrentDirectory(), "example-input")
+
 func main() {
-	executablePath, err := os.Executable()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
+	// If another cmd argument has been passed, use that as the input path:
+	if len(os.Args) > 1 {
+		inputPath = os.Args[1]
 	}
 
-	executableDir := filepath.Dir(executablePath)
-	var inputPath = filepath.Join(executableDir, "example-input1")
-	fmt.Println("Input Path:", inputPath)
-	// Use inputPath as needed
+	var contents, _ = sharedcode.ParseFile(inputPath)
+
+	partOne(contents)
+	partTwo(contents)
+}
+
+func partOne(contents string) {
+	sharedstruct.PrintOutput(sharedstruct.Output{
+		Day:   2,
+		Part:  1,
+		Value: "TODO",
+	})
+}
+
+func partTwo(contents string) {
+	sharedstruct.PrintOutput(sharedstruct.Output{
+		Day:   2,
+		Part:  1,
+		Value: "TODO",
+	})
 }
