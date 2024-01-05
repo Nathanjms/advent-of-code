@@ -55,9 +55,17 @@ func partOne(contents string) {
 }
 
 func partTwo(contents string) {
+	num := 0
+
+	for {
+		if GetMD5Hash(fmt.Sprintf("%s%d", contents, num))[:6] == "000000" {
+			break
+		}
+		num++
+	}
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   4,
-		Part:  1,
-		Value: "TODO",
+		Part:  2,
+		Value: num,
 	})
 }
