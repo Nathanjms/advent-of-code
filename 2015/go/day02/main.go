@@ -69,7 +69,7 @@ func partTwo(contents []string) {
 	}
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   2,
-		Part:  1,
+		Part:  2,
 		Value: totalToOrder,
 	})
 }

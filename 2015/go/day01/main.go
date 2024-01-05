@@ -92,7 +92,7 @@ func partTwo(contents string) {
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   1,
-		Part:  1,
+		Part:  2,
 		Value: indexOfBasement + 1,
 	})
 }

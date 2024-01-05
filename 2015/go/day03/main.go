@@ -98,7 +98,7 @@ func partTwo(contents string) {
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   3,
-		Part:  1,
+		Part:  2,
 		Value: visitCount,
 	})
 }
