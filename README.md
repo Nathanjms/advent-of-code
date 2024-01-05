@@ -1,5 +1,20 @@
-# Advent of Code 2023
+# Advent of Code
 
-Change to the JavaScript directory with `cd js` and run `node main` to run the code.
+Go the the relevant year and look at the README.md file for that year for details of that year's solutions.
 
-To create a new page from the template, run `bash createDay.sh x`, where x is the day number.
+## Go (WIP)
+
+This is a WIP of older year solutions, and has not been completed yet.
+
+For Go solutions (WIP), these can be ran from the homepage as follows:
+
+```bash
+go run ./2015/go/day01
+```
+
+to run with example input, or
+
+```bash
+go run ./2015/go/day01 ./input
+```
+to run with the input at the path given.

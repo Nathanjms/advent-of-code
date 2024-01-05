@@ -1,9 +1,8 @@
 package main
 
 import (
+	"2023/go/day01"
 	"flag"
-
-	"github.com/nathanjms/advent-of-code-2023/go/day01"
 )
 
 func main() {

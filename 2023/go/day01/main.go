@@ -1,14 +1,24 @@
 package day01
 
 import (
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"unicode"
 
-	"github.com/nathanjms/advent-of-code-2023/go/pkg/sharedcode"
-	"github.com/nathanjms/advent-of-code-2023/go/pkg/sharedstruct"
+	"aoc-shared/pkg/sharedcode"
+	"aoc-shared/pkg/sharedstruct"
 )
 
-var inputPath = "./day01/example-input1"
+func getCurrentDirectory() string {
+	_, filename, _, _ := runtime.Caller(0)
+	dirname := filepath.Dir(filename)
+	return dirname
+}
+
+// Input path is current directory + example-input1
+// In go, to get the current directory, use os.Getwd()
+var inputPath = filepath.Join(getCurrentDirectory(), "example-input1")
 
 // var contents string
 var contentsArray []string
