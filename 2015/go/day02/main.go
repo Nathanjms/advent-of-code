@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
+	"strings"
 )
 
 func getCurrentDirectory() string {
@@ -23,21 +25,35 @@ func main() {
 		inputPath = os.Args[1]
 	}
 
-	var contents, _ = sharedcode.ParseFile(inputPath)
+	var _, contents = sharedcode.ParseFile(inputPath)
 
 	partOne(contents)
 	partTwo(contents)
 }
 
-func partOne(contents string) {
+func partOne(contents []string) {
+	totalToOrder := 0
+
+	for _, line := range contents {
+		// Explode line by 'x':
+		temp := strings.Split(line, "x")
+		length, _ := strconv.Atoi(temp[0])
+		width, _ := strconv.Atoi(temp[1])
+		height, _ := strconv.Atoi(temp[2])
+
+		totalToOrder += 2 * (length*width + width*height + height*length)
+		// Also need to add the smallest side area:
+		totalToOrder += min(length*width, width*height, height*length)
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   2,
 		Part:  1,
-		Value: "TODO",
+		Value: totalToOrder,
 	})
 }
 
-func partTwo(contents string) {
+func partTwo(contents []string) {
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   2,
 		Part:  1,
