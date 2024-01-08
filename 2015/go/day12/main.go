@@ -3,7 +3,6 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -55,7 +54,7 @@ func partTwo(contents string) {
 	// Parse the JSON string
 
 	// Parse the JSON string
-	data, err := parseJSON(contents)
+	data, err := sharedcode.ParseJSON(contents)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -93,10 +92,4 @@ func partTwo(contents string) {
 		Part:  2,
 		Value: count,
 	})
-}
-
-func parseJSON(jsonString string) (interface{}, error) {
-	var data interface{}
-	err := json.Unmarshal([]byte(jsonString), &data)
-	return data, err
 }
