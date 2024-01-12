@@ -30,68 +30,56 @@ func main() {
 	partTwo(contents)
 }
 
+type InnerMap struct {
+	Value    int    `json:"value"`
+	Operator string `json:"operator"`
+}
+
+var targetsByKey = map[string]InnerMap{
+	"children":    {Value: 3, Operator: "eq"},
+	"cats":        {Value: 7, Operator: "eq"},
+	"samoyeds":    {Value: 2, Operator: "eq"},
+	"pomeranians": {Value: 3, Operator: "eq"},
+	"akitas":      {Value: 0, Operator: "eq"},
+	"vizslas":     {Value: 0, Operator: "eq"},
+	"goldfish":    {Value: 5, Operator: "eq"},
+	"trees":       {Value: 3, Operator: "eq"},
+	"cars":        {Value: 2, Operator: "eq"},
+	"perfumes":    {Value: 1, Operator: "eq"},
+}
+
 func partOne(contents []string) {
 	sharedstruct.PrintOutput(sharedstruct.Output{
-		Day:  16,
-		Part: 1,
-		Value: getCorrectSue(
-			contents,
-			map[string]string{
-				"children":    "eq",
-				"cats":        "eq",
-				"samoyeds":    "eq",
-				"pomeranians": "eq",
-				"akitas":      "eq",
-				"vizslas":     "eq",
-				"goldfish":    "eq",
-				"trees":       "eq",
-				"cars":        "eq",
-				"perfumes":    "eq",
-			},
-		),
+		Day:   16,
+		Part:  1,
+		Value: getCorrectSue(contents, targetsByKey),
 	})
 }
 
 func partTwo(contents []string) {
+	partTwoTargetsByKey := make(map[string]InnerMap)
+	for k, v := range targetsByKey {
+		switch k {
+		case "cats", "trees":
+			partTwoTargetsByKey[k] = InnerMap{Value: v.Value, Operator: "gt"}
+		case "goldfish", "pomeranian":
+			partTwoTargetsByKey[k] = InnerMap{Value: v.Value, Operator: "lt"}
+		default:
+			partTwoTargetsByKey[k] = InnerMap{Value: v.Value, Operator: "eq"}
+		}
+	}
+	fmt.Println(partTwoTargetsByKey)
 	sharedstruct.PrintOutput(sharedstruct.Output{
-		Day:  16,
-		Part: 2,
-		Value: getCorrectSue(
-			contents,
-			map[string]string{
-				"children":    "eq",
-				"cats":        "gt",
-				"samoyeds":    "eq",
-				"pomeranians": "lt",
-				"akitas":      "eq",
-				"vizslas":     "eq",
-				"goldfish":    "lt",
-				"trees":       "gt",
-				"cars":        "eq",
-				"perfumes":    "eq",
-			},
-		),
+		Day:   16,
+		Part:  2,
+		Value: getCorrectSue(contents, partTwoTargetsByKey),
 	})
 }
 
-var targetsByKey = map[string]int{
-	"children":    3,
-	"cats":        7,
-	"samoyeds":    2,
-	"pomeranians": 3,
-	"akitas":      0,
-	"vizslas":     0,
-	"goldfish":    5,
-	"trees":       3,
-	"cars":        2,
-	"perfumes":    1,
-}
-
-func getCorrectSue(contents []string, operationKeys map[string]string) int {
+func getCorrectSue(contents []string, targetsByKey map[string]InnerMap) int {
 	giftSueNum := 0
 
 	for _, line := range contents {
-		// Sue 1: cars: 9, akitas: 3, goldfish: 0
 		var sueNum, attOneVal, attTwoVal, attThreeVal int
 		var attOne, attTwo, attThree string
 		_, err := fmt.Sscanf(
@@ -115,9 +103,9 @@ func getCorrectSue(contents []string, operationKeys map[string]string) int {
 		attThree = attThree[:len(attThree)-1]
 
 		// Check all three match, and break once we find a match
-		if checkAttribute(attOne, attOneVal, &operationKeys) &&
-			checkAttribute(attTwo, attTwoVal, &operationKeys) &&
-			checkAttribute(attThree, attThreeVal, &operationKeys) {
+		if checkAttribute(attOne, attOneVal, &targetsByKey) &&
+			checkAttribute(attTwo, attTwoVal, &targetsByKey) &&
+			checkAttribute(attThree, attThreeVal, &targetsByKey) {
 			giftSueNum = sueNum
 			break
 		}
@@ -126,14 +114,14 @@ func getCorrectSue(contents []string, operationKeys map[string]string) int {
 	return giftSueNum
 }
 
-func checkAttribute(attrName string, attrVal int, operationKeys *map[string]string) bool {
-	compareType := (*operationKeys)[attrName]
+func checkAttribute(attrName string, attrVal int, targetsByKey *map[string]InnerMap) bool {
+	compareType := (*targetsByKey)[attrName].Operator
 
 	if compareType == "gt" {
-		return attrVal > targetsByKey[attrName]
+		return attrVal > (*targetsByKey)[attrName].Value
 	} else if compareType == "lt" {
-		return attrVal < targetsByKey[attrName]
+		return attrVal < (*targetsByKey)[attrName].Value
 	} else {
-		return attrVal == targetsByKey[attrName]
+		return attrVal == (*targetsByKey)[attrName].Value
 	}
 }
