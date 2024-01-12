@@ -16,11 +16,13 @@ func getCurrentDirectory() string {
 
 // Default Input path is current directory + example-input
 var inputPath = filepath.Join(getCurrentDirectory(), "example-input")
+var isUsingExample = true
 
 func main() {
 	// If another cmd argument has been passed, use that as the input path:
 	if len(os.Args) > 1 {
 		inputPath = os.Args[1]
+		isUsingExample = false
 	}
 
 	var contents, _ = sharedcode.ParseFile(inputPath)
