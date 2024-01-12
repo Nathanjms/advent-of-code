@@ -3,6 +3,8 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -70,9 +72,56 @@ func partOne(contents []string) {
 }
 
 func partTwo(contents []string) {
+	/* We could either brute force this, or maybe write a recursive function. There are not that many, so brute force is probable viable.
+	 *	As a learning exercise, I'll try a recursive function... what could possibly go wrong
+	 */
+
+	containers := make([]int, len(contents))
+	for i, line := range contents {
+		intVal, _ := strconv.Atoi(line)
+		containers[i] = intVal
+	}
+
+	targetCapacity := 150
+	if isUsingExample {
+		targetCapacity = 25
+	}
+
+	var computeSize func(containers []int, remainingCapacity int, usedContainers int) int
+
+	countsBySize := make(map[int]int)
+	computeSize = func(containers []int, remainingCapacity int, usedContainers int) int {
+		if remainingCapacity == 0 {
+			// We've got a match!
+			_, ok := countsBySize[usedContainers]
+			if ok {
+				countsBySize[usedContainers]++
+			} else {
+				countsBySize[usedContainers] = 1
+			}
+			return 1
+		} else if remainingCapacity < 0 || len(containers) == 0 {
+			// We've gone below zero, or we've got no containers left. Either way, we've not got a match with this combo
+			return 0
+		}
+		// Handle when first container is used, and when first container is not used
+		return computeSize(containers[1:], remainingCapacity-containers[0], usedContainers+1) +
+			computeSize(containers[1:], remainingCapacity, usedContainers)
+	}
+
+	computeSize(containers, targetCapacity, 0)
+
+	fmt.Println(countsBySize)
+
+	minNumContainers := math.MaxInt
+
+	for numContainers := range countsBySize {
+		minNumContainers = min(minNumContainers, numContainers)
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   17,
 		Part:  2,
-		Value: "TODO",
+		Value: countsBySize[minNumContainers],
 	})
 }
