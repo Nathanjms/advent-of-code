@@ -3,11 +3,13 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"fmt"
+	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -29,7 +31,10 @@ func main() {
 	}
 
 	var _, contents = sharedcode.ParseFile(inputPath)
-	var _, contentsPt2 = sharedcode.ParseFile(inputPath + "2")
+	if isUsingExample {
+		inputPath += "2"
+	}
+	var _, contentsPt2 = sharedcode.ParseFile(inputPath)
 
 	partOne(contents)
 	partTwo(contentsPt2)
@@ -46,16 +51,13 @@ func partOne(contents []string) {
 		orig := mapArr[0]
 		new := mapArr[1]
 		indexes := findAllOccurrences(input, orig)
-		fmt.Println(orig, indexes)
 		// For each found index, we need to string replace the indexes shown with the new values, then add this to the possibliltiesByKey
 		for _, idxs := range indexes {
 			start := idxs[0]
 			end := idxs[1]
 			output := input[0:start] + new + input[end:]
-			fmt.Println(output)
 			possibilitiesByKey[output] = true
 		}
-		// Do we get any matches in the remaining input for the orig?
 	}
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
@@ -67,27 +69,77 @@ func partOne(contents []string) {
 
 func partTwo(contents []string) {
 
-	// Suspecting recursion may be needed:
-	// var getPossibilities func(buildingString string, remainingInput string) int
+	mapping, input := parseInput(contents)
 
-	// // Only doing one step, but pt2 maybe will need recursion, so build it in that format
-	// getPossibilities = func(buildingString string, remainingInput string) int {
-	// 	// Go through the map, and for any that find a match, handle recursion
-	// 	for orig, new := range mapping {
-	// 		indexes := findAllOccurrences(remainingInput, orig)
-	// 		// For each found index, we
-	// 		//
-	// 		fmt.Println(indexes)
-	// 		fmt.Println(new)
-	// 		// Do we get any matches in the remaining input for the orig?
+	// // Sort the mapping by the second element in each inner slice
+	sort.Slice(mapping, func(i, j int) bool {
+		return len(mapping[i][1]) > len(mapping[j][1])
+	})
 
-	// 	}
-	// 	return 0
-	// }
+	// Randomness to the rescue? Super fast but should it work this well?
+
+	validResults := make(map[int]int)
+	validResultCount := 0
+	inputOriginal := input
+	var steps int
+	var repeats int
+
+	for {
+		input = inputOriginal
+		steps = 0
+		repeats = 0
+		for {
+			// Choose a random array element to use for this loop
+			mapArr := mapping[rand.Intn(len(mapping))]
+			orig := mapArr[0]
+			new := mapArr[1]
+			if orig == "e" {
+				if input == new {
+					input = "e"
+					steps++
+					break
+				}
+			} else {
+				inputOld := input
+
+				// Replace any occurrences of the new variable with the old
+				input = strings.Replace(input, new, orig, 1)
+				if inputOld != input {
+					steps++
+				}
+				if input == "e" {
+					break
+				}
+				// 'Big enough' to mean we wont ever get a good result
+				if repeats > 1000 {
+					break
+				}
+				repeats++
+			}
+		}
+		if input == "e" {
+			if _, ok := validResults[steps]; !ok {
+				validResults[steps] = 1
+			} else {
+				validResults[steps]++
+			}
+			validResultCount++
+		}
+		if validResultCount > 100 {
+			break
+		}
+	}
+
+	// Choose the one with the largest occurrence. In reality, it looks like it only ever returns the correct result.
+	result := math.MaxInt
+	for key := range validResults {
+		result = min(key, result)
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   19,
 		Part:  2,
-		Value: "TODO",
+		Value: result,
 	})
 }
 
