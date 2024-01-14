@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"sort"
 	"strings"
 )
 
@@ -70,11 +69,6 @@ func partOne(contents []string) {
 func partTwo(contents []string) {
 
 	mapping, input := parseInput(contents)
-
-	// // Sort the mapping by the second element in each inner slice
-	sort.Slice(mapping, func(i, j int) bool {
-		return len(mapping[i][1]) > len(mapping[j][1])
-	})
 
 	// Randomness to the rescue? Super fast but should it work this well?
 
