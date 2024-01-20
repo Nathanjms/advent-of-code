@@ -56,7 +56,7 @@ _Tip: Add '0' to the start of the day number if it is less than 10, e.g. `01` in
 
 ## Setup for a new year
 
-### Go
+### Go
 
 1. Create the year folder, eg. `mkdir -p 2017/go`
 2. In the folder, run `go mod init aoc-2017`, then cd back to the root of this repo
