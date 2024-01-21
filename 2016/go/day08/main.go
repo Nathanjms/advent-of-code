@@ -48,6 +48,7 @@ func partOne(contents []string) {
 	}
 
 	for _, line := range contents {
+		originalGrid := cloneGrid(grid)
 		if line[0:4] == "rect" {
 			split := strings.Split(line[5:], "x")
 			width, _ := strconv.Atoi(split[0])
