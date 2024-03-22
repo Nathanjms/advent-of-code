@@ -4,7 +4,6 @@ import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -35,18 +34,14 @@ func main() {
 	partTwo(contents)
 }
 
-var namesToId = map[string]int{
-	"thulium":    0,
-	"plutonium":  1,
-	"strontium":  2,
-	"promethium": 3,
-	"ruthenium":  4,
-	"hydrogen":   5,
-}
-
-var itemTypeToId = map[string]int{
-	"M": 64,
-	"G": 63,
+var namesToId = map[string]string{
+	"lithium":    "LI",
+	"thulium":    "TH",
+	"plutonium":  "PL",
+	"strontium":  "ST",
+	"promethium": "PR",
+	"ruthenium":  "RU",
+	"hydrogen":   "HY",
 }
 
 type item struct {
@@ -55,10 +50,15 @@ type item struct {
 	ID   string
 }
 
-type queueItem struct {
-	Steps         int
-	CurrState     map[int][]item
-	CurrLiftFloor int
+type state struct {
+	steps         int
+	floorState    map[int][]item
+	elevatorFloor int
+}
+
+type stateKey struct {
+	floors   string
+	elevator int
 }
 
 func partOne(contents []string) {
@@ -66,38 +66,16 @@ func partOne(contents []string) {
 	itemsPerFloor := parseInput(contents)
 	displayFloors(&itemsPerFloor, 0)
 
-	// Lets try for a BFS
-	queue := make([]queueItem, 0)
-
-	queue = append(queue, queueItem{
-		Steps:         0,
-		CurrState:     itemsPerFloor,
-		CurrLiftFloor: 0,
+	numSteps := solve(state{
+		steps:         0,
+		floorState:    itemsPerFloor,
+		elevatorFloor: 0,
 	})
-
-	var seen []map[int][]item // We could optimise this to just be the IDs - try this for now!
-
-	steps := math.MaxInt
-	var nextItem queueItem
-	for {
-		nextItem, queue = queue[0], queue[1:] // Grab the next entry in the queue
-
-		// Have we already seen this?
-		if isFinished(&nextItem.CurrState) {
-			steps = nextItem.Steps
-			break
-		}
-
-		// Get all possibilities and add them to queue if not visited:
-		// This is the hard bit...
-		possibilities := getPossibilities(&nextItem)
-
-	}
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   11,
 		Part:  1,
-		Value: steps,
+		Value: numSteps,
 	})
 }
 
@@ -107,6 +85,142 @@ func partTwo(contents []string) {
 		Part:  2,
 		Value: "TODO",
 	})
+}
+
+func solve(initial state) int {
+	queue := []state{initial}
+	visited := make(map[stateKey]bool)
+
+	for len(queue) > 0 {
+		current := queue[0]
+		displayFloors(&current.floorState, current.steps)
+		fmt.Println("")
+		queue = queue[1:]
+
+		if isFinished(&current.floorState) {
+			return current.steps
+		}
+
+		nextStates := generateNextStates(current)
+		for _, nextState := range nextStates {
+			key := getStateKey(nextState)
+			if !visited[key] {
+				queue = append(queue, nextState)
+				visited[key] = true
+			}
+		}
+	}
+
+	return -1 // No solution found if we've made it here
+}
+
+// This is the hard one... move each item ON THE ELEVATOR FLOOR up and down and check if valid
+func generateNextStates(current state) []state {
+	nextStates := make([]state, 0)
+	itemsOnCurrentFloor := current.floorState[current.elevatorFloor]
+
+	// We can't simply loop items, because you can move more than one item at a time! Let's get the combinations of items we can move
+	combinations := generateCombinations(itemsOnCurrentFloor)
+	for _, combo := range combinations {
+		for dir := -1; dir <= 1; dir += 2 {
+			newElevator := current.elevatorFloor + dir
+			if newElevator < 0 || newElevator >= len(current.floorState) {
+				continue // Skip invalid elevator positions
+			}
+
+			// Try moving items and check if resulting state is valid
+			newState := moveItems(current, combo, newElevator)
+			if isValidState(newState) {
+				newState.steps = current.steps + 1
+				nextStates = append(nextStates, newState)
+			}
+		}
+	}
+
+	return nextStates
+}
+
+func generateCombinations(items []item) [][]item {
+	// Generate all possible combinations of items to move (subset generation)
+	combinations := [][]item{{}}
+	for _, item := range items {
+		for i := len(combinations) - 1; i >= 0; i-- {
+			newCombo := append(combinations[i][:len(combinations[i]):len(combinations[i])], item)
+			combinations = append(combinations, newCombo)
+		}
+	}
+	return combinations[1:] // Exclude the empty subset
+}
+
+// Take the current state and move the items to the new floor
+func moveItems(current state, items []item, newElevator int) state {
+	// Create a new state with items moved to newElevator
+	newState := state{
+		elevatorFloor: newElevator,
+		steps:         current.steps,
+		floorState:    make(map[int][]item),
+	}
+
+	newState.floorState = cloneFloorState(current.floorState)
+
+	for _, item := range items {
+		newState.floorState[current.elevatorFloor] = removeItem(newState.floorState[current.elevatorFloor], item.ID)
+		newState.floorState[newElevator] = append(newState.floorState[newElevator], item)
+	}
+
+	return newState
+}
+
+func cloneFloorState(floorState map[int][]item) map[int][]item {
+	newFloorState := make(map[int][]item)
+	for floor, items := range floorState {
+		newFloorState[floor] = items
+	}
+	return newFloorState
+}
+
+func removeItem(items []item, itemToRemoveID string) []item {
+	result := []item{}
+	for _, item := range items {
+		if item.ID != itemToRemoveID {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func isValidState(state state) bool {
+	// Check if state is valid based on problem constraints
+	for _, floor := range state.floorState {
+		if containsInvalidPair(floor) {
+			return false
+		}
+	}
+	return true
+}
+
+func containsInvalidPair(items []item) bool {
+	generators := make([]item, 0)
+	for _, item := range items {
+		// Generators are safe by themselves
+		if item.Type == "generator" {
+			generators = append(generators, item)
+		}
+		// All microchips cannot be left with a generator unless that generator is paired with it's microchip
+		if item.Type == "microchip" && !containsGeneratorPair(generators, item) {
+			return true
+		}
+	}
+	return false
+}
+
+func containsGeneratorPair(generators []item, microchip item) bool {
+	for _, generator := range generators {
+		if microchip.Name == generator.Name {
+			return true
+		}
+	}
+	return false
 }
 
 func parseInput(contents []string) map[int][]item {
@@ -121,14 +235,14 @@ func parseInput(contents []string) map[int][]item {
 		line := contents[i]
 		for itemType, pattern := range patternsByType {
 			entries := regexp.MustCompile(pattern)
-			matches := entries.FindAllString(line, -1)
+			matches := entries.FindAllStringSubmatch(line, -1)
 			for _, match := range matches {
-				tmp := strings.Split(match, "-")
+				val := match[1]
 				itemsPerFloor[currentFloor] = append(itemsPerFloor[currentFloor],
 					item{
-						Name: tmp[0],
+						Name: val,
 						Type: itemType,
-						ID:   fmt.Sprintf("%d-%d", namesToId[tmp[0]], itemTypeToId[itemType]),
+						ID:   fmt.Sprintf("%s-%s", namesToId[val], itemType),
 					},
 				)
 			}
@@ -156,6 +270,7 @@ func displayFloors(itemsPerFloor *map[int][]item, elevatorFloor int) {
 }
 
 func isFinished(itemsPerFloor *map[int][]item) bool {
+	// If the top floor has all of the items, we're finished. We'll go up each floor and check (could optimise by using count of items if needed)
 	// Check the first 3 floors for items:
 	for i := 0; i < 3; i++ {
 		if len((*itemsPerFloor)[i]) > 0 {
@@ -166,21 +281,14 @@ func isFinished(itemsPerFloor *map[int][]item) bool {
 	return true
 }
 
-func getPossibilities(itemsOnFloor *queueItem) []map[int][]item {
-	possibilities := make([]map[int][]item, 0)
-	for _, item := range itemsOnFloor.CurrState[itemsOnFloor.CurrLiftFloor] {
-		// For each item, we can move it up or down. Keep it in range though.
-		newPossibility := make(map[int][]item)
-		// UP:
-		if itemsOnFloor.CurrLiftFloor != 3 {
-			// Move item up a floor!
-			newPossibility = itemsOnFloor.CurrState
-			// Remove the item from its current floor, move it up to the next floor:
-
+func getStateKey(state state) stateKey {
+	var floorsStr strings.Builder
+	for _, floor := range state.floorState {
+		for _, item := range floor {
+			floorsStr.WriteString(item.ID)
+			floorsStr.WriteString("|")
 		}
-		// DOWN:
-		if itemsOnFloor.CurrLiftFloor != 0 {
-			newPossibility = ite
-		}
+		floorsStr.WriteString(",")
 	}
+	return stateKey{floors: floorsStr.String(), elevator: state.elevatorFloor}
 }
