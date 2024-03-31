@@ -90,14 +90,15 @@ func partTwo(contents []string) {
 func solve(initial state) int {
 	queue := []state{initial}
 	visited := make(map[stateKey]bool)
+	iterations := 0
 
 	for len(queue) > 0 {
+		iterations++
 		current := queue[0]
-		displayFloors(&current.floorState, current.steps)
-		fmt.Println("")
 		queue = queue[1:]
 
 		if isFinished(&current.floorState) {
+			fmt.Println(iterations, "iterations")
 			return current.steps
 		}
 
@@ -110,6 +111,8 @@ func solve(initial state) int {
 			}
 		}
 	}
+
+	fmt.Println(iterations, "iterations")
 
 	return -1 // No solution found if we've made it here
 }
@@ -146,10 +149,13 @@ func generateCombinations(items []item) [][]item {
 	for _, item := range items {
 		for i := len(combinations) - 1; i >= 0; i-- {
 			newCombo := append(combinations[i][:len(combinations[i]):len(combinations[i])], item)
-			combinations = append(combinations, newCombo)
+			// Can only carry up to 2 items in the elevator
+			if len(newCombo) <= 2 && len(newCombo) != 0 {
+				combinations = append(combinations, newCombo)
+			}
 		}
 	}
-	return combinations[1:] // Exclude the empty subset
+	return combinations
 }
 
 // Take the current state and move the items to the new floor
@@ -174,7 +180,10 @@ func moveItems(current state, items []item, newElevator int) state {
 func cloneFloorState(floorState map[int][]item) map[int][]item {
 	newFloorState := make(map[int][]item)
 	for floor, items := range floorState {
-		newFloorState[floor] = items
+		// Deep copy items slice for each floor
+		newItems := make([]item, len(items))
+		copy(newItems, items)
+		newFloorState[floor] = newItems
 	}
 	return newFloorState
 }
@@ -201,13 +210,17 @@ func isValidState(state state) bool {
 
 func containsInvalidPair(items []item) bool {
 	generators := make([]item, 0)
+	// Add all generators first...
 	for _, item := range items {
 		// Generators are safe by themselves
-		if item.Type == "generator" {
+		if item.Type == "G" {
 			generators = append(generators, item)
 		}
-		// All microchips cannot be left with a generator unless that generator is paired with it's microchip
-		if item.Type == "microchip" && !containsGeneratorPair(generators, item) {
+	}
+	// Then look at microchips...
+	for _, item := range items {
+		// All microchips cannot be left with a generator unless IT HAS ITS OWN PAIR
+		if item.Type == "M" && len(generators) > 0 && !containsGeneratorPair(generators, item) {
 			return true
 		}
 	}
@@ -267,6 +280,8 @@ func displayFloors(itemsPerFloor *map[int][]item, elevatorFloor int) {
 		}
 		fmt.Printf("\r%s%d: %s\n", "F", i+1, strTmp)
 	}
+	fmt.Println("")
+	fmt.Println("")
 }
 
 func isFinished(itemsPerFloor *map[int][]item) bool {
