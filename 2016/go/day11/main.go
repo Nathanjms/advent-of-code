@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -102,17 +103,23 @@ func solve(initial state) int {
 			return current.steps
 		}
 
+		key := getStateKey(current)
+
+		visited[key] = true // Only visit each state once
+
 		nextStates := generateNextStates(current)
 		for _, nextState := range nextStates {
 			key := getStateKey(nextState)
 			if !visited[key] {
 				queue = append(queue, nextState)
-				visited[key] = true
 			}
 		}
-	}
+		fmt.Println(iterations, "iterations")
 
-	fmt.Println(iterations, "iterations")
+		if iterations == 100000 {
+			fmt.Println(visited)
+		}
+	}
 
 	return -1 // No solution found if we've made it here
 }
@@ -149,13 +156,14 @@ func generateCombinations(items []item) [][]item {
 	for _, item := range items {
 		for i := len(combinations) - 1; i >= 0; i-- {
 			newCombo := append(combinations[i][:len(combinations[i]):len(combinations[i])], item)
+
 			// Can only carry up to 2 items in the elevator
 			if len(newCombo) <= 2 && len(newCombo) != 0 {
 				combinations = append(combinations, newCombo)
 			}
 		}
 	}
-	return combinations
+	return combinations[1:]
 }
 
 // Take the current state and move the items to the new floor
@@ -173,6 +181,11 @@ func moveItems(current state, items []item, newElevator int) state {
 		newState.floorState[current.elevatorFloor] = removeItem(newState.floorState[current.elevatorFloor], item.ID)
 		newState.floorState[newElevator] = append(newState.floorState[newElevator], item)
 	}
+
+	// Sort it so we ALWAYS get the same order, for key reference later
+	sort.Slice(newState.floorState[newElevator], func(i, j int) bool {
+		return newState.floorState[newElevator][i].ID < newState.floorState[newElevator][j].ID
+	})
 
 	return newState
 }
@@ -298,8 +311,9 @@ func isFinished(itemsPerFloor *map[int][]item) bool {
 
 func getStateKey(state state) stateKey {
 	var floorsStr strings.Builder
-	for _, floor := range state.floorState {
-		for _, item := range floor {
+	for i := 0; i < 4; i++ {
+		// Items are sorted, so we can just go through each
+		for _, item := range state.floorState[i] {
 			floorsStr.WriteString(item.ID)
 			floorsStr.WriteString("|")
 		}
