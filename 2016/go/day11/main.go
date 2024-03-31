@@ -107,17 +107,14 @@ func solve(initial state) int {
 
 		visited[key] = true // Only visit each state once
 
+		fmt.Println(current.steps, "steps")
+
 		nextStates := generateNextStates(current)
 		for _, nextState := range nextStates {
 			key := getStateKey(nextState)
 			if !visited[key] {
 				queue = append(queue, nextState)
 			}
-		}
-		fmt.Println(iterations, "iterations")
-
-		if iterations == 100000 {
-			fmt.Println(visited)
 		}
 	}
 
@@ -310,11 +307,32 @@ func isFinished(itemsPerFloor *map[int][]item) bool {
 }
 
 func getStateKey(state state) stateKey {
+	// HINT: THE MOST IMPORTANT, ABSOLUTELY ESSENTIAL: ALL PAIRS ARE INTERCHANGEABLE
+	// To do this, we will first go through and mark the elements as discovered as A, B, etc, so that all keys are the same if items are interchangable
+	var genericItemMap = make(map[string]string)
+	var itemsFound = make(map[string]bool)
 	var floorsStr strings.Builder
+
+	for i := 0; i < 4; i++ {
+		for _, item := range state.floorState[i] {
+			// if item not yet found, give it the next available letter
+			if !itemsFound[item.Name] {
+				genericItemMap[item.Name] = string('A' + len(genericItemMap))
+				itemsFound[item.Name] = true
+			}
+		}
+	}
+
+	// We now need to sort each floor so that they're all the same order:
+	// Sort it so we ALWAYS get the same order, for key reference later
+	sort.Slice(state.floorState[state.elevatorFloor], func(i, j int) bool {
+		return genericItemMap[state.floorState[state.elevatorFloor][i].Name] < genericItemMap[state.floorState[state.elevatorFloor][j].Name]
+	})
+
 	for i := 0; i < 4; i++ {
 		// Items are sorted, so we can just go through each
 		for _, item := range state.floorState[i] {
-			floorsStr.WriteString(item.ID)
+			floorsStr.WriteString(genericItemMap[item.ID] + item.Type)
 			floorsStr.WriteString("|")
 		}
 		floorsStr.WriteString(",")
