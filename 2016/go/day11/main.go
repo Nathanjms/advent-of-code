@@ -95,6 +95,10 @@ func solve(initial state) int {
 
 		key := getStateKey(current)
 
+		if visited[key] {
+			continue // Skip if we've already visited this state
+		}
+
 		visited[key] = true // Only visit each state once
 
 		fmt.Println(current.steps, "steps")
