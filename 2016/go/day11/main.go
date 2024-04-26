@@ -50,6 +50,8 @@ type itemPair [2]int
 // [FLOOR]-[ORDERED_MICROCHIPS]-[ORDERED_GENERATORS]
 type stateKey map[string]bool
 
+var visited = make(stateKey)
+
 func partOne(contents []string) {
 	// Get items per floor. Note we are offset by 1 due to zero-indexing
 	items := parseInput(contents)
@@ -70,14 +72,24 @@ func partOne(contents []string) {
 }
 
 func partTwo(contents []string) {
+	visited = make(stateKey) // Need to reset the global state for part two
+
+	items := parseInput(contents)
+	// Part two has more items in floor 0. We dont really care what they are, so add them to the end like so:
+	items = append(items, [2]int{0, 0}, [2]int{0, 0})
+
+	numSteps := solve(state{
+		steps:         0,
+		elevatorFloor: 0,
+		floorState:    items,
+	})
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   11,
 		Part:  2,
-		Value: "TODO",
+		Value: numSteps,
 	})
 }
-
-var visited = make(stateKey)
 
 func solve(initial state) int {
 	queue := []state{initial}
@@ -89,7 +101,6 @@ func solve(initial state) int {
 		queue = queue[1:]
 
 		if isFinished(&current.floorState) {
-			fmt.Println(iterations, "iterations")
 			return current.steps
 		}
 
@@ -100,8 +111,6 @@ func solve(initial state) int {
 		}
 
 		visited[key] = true // Only visit each state once
-
-		fmt.Println(current.steps, "steps")
 
 		nextStates := generateNextValidStates(current)
 		queue = append(queue, nextStates...)
@@ -217,9 +226,8 @@ func isValidState(state state) bool {
 	return true
 }
 
-var itemNameToIndex = map[string]int{}
-
 func parseInput(contents []string) []itemPair {
+	var itemNameToIndex = map[string]int{}
 	itemsState := make([]itemPair, 0)
 	currentFloor := 0
 	patternsByType := map[string]string{
