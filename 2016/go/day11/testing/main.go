@@ -107,9 +107,11 @@ func solve(initial state) int {
 
 		key := getStateKey(current)
 
-		visited[key] = true // Only visit each state once
+		if visited[key] {
+			continue // Skip if we've already visited this state
+		}
 
-		fmt.Println(current.steps, "steps")
+		visited[key] = true // Only visit each state once
 
 		nextStates := generateNextStates(current)
 		for _, nextState := range nextStates {
