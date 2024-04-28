@@ -5,7 +5,6 @@ import (
 	"aoc-shared/pkg/sharedstruct"
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -41,10 +40,12 @@ func partOne(contents string) {
 	index := 0
 
 	for {
-		hash := getmd5hash(contents + strconv.Itoa(index))
-		if charToMatch := threeInRow(hash), charToMatch != 0 {
-			// Send of goroutine to check for five in a row, we dont need to stop the main process
-			checkIfValid(contents, index, )
+		hash := getMD5Hash(contents + strconv.Itoa(index))
+		if charToMatch := threeInRow(hash); charToMatch != 0 {
+			if checkIfValid(contents, index, charToMatch, false) {
+				validIndexes[index] = true
+			}
+
 		}
 
 		if len(validIndexes) >= 64 {
@@ -53,26 +54,61 @@ func partOne(contents string) {
 		index++
 	}
 
-	fmt.Println(validIndexes)
-
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   14,
 		Part:  1,
-		Value: "TODO",
+		Value: index,
 	})
 }
 
+var hashMapCachePtTwo = make(map[string]string) // the result of hashing the given key 1 + 2016 times
+
 func partTwo(contents string) {
+	index := 0
+	validIndexes = make(map[int]bool)
+
+	for {
+		hash := getMD5HashPt2(contents + strconv.Itoa(index))
+		if charToMatch := threeInRow(hash); charToMatch != 0 {
+			if checkIfValid(contents, index, charToMatch, true) {
+				validIndexes[index] = true
+			}
+
+		}
+
+		if len(validIndexes) >= 64 {
+			break
+		}
+		index++
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   14,
 		Part:  2,
-		Value: "TODO",
+		Value: index,
 	})
 }
 
-func getmd5hash(input string) string {
-	hash := md5.Sum([]byte(input))
+func getMD5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
+}
+
+func getMD5HashPt2(text string) string {
+	originalText := text
+	if hash, ok := hashMapCachePtTwo[originalText]; ok {
+		return hash
+	}
+
+	// Hash it, then hash again 2016 times... 2017 hashes in total
+
+	for i := 0; i < 2017; i++ {
+		hash := md5.Sum([]byte(text))
+		text = hex.EncodeToString(hash[:])
+	}
+
+	hashMapCachePtTwo[originalText] = text
+	return text
 }
 
 func threeInRow(input string) byte {
@@ -88,20 +124,26 @@ func threeInRow(input string) byte {
 func fiveInRow(input string, charToMatch byte) bool {
 	// Does the string contain 5 characters in a row?
 	for i := 0; i < len(input)-4; i++ {
-		if input[i] == input[i+1] && input[i+1] == input[i+2] && input[i+2] == input[i+3] && input[i+3] == input[i+4] && input[i] == charToMatch {
+		if input[i] == charToMatch && input[i] == input[i+1] && input[i+1] == input[i+2] && input[i+2] == input[i+3] && input[i+3] == input[i+4] {
 			return true
 		}
 	}
 	return false
 }
 
-func checkIfValid(input string, index int, charToMatch byte) {
+func checkIfValid(input string, index int, charToMatch byte, isPartTwo bool) bool {
 	// Check if any of the next 1000 hashes contain 5 characters in a row
 	for i := 0; i < 1000; i++ {
-		hash := getmd5hash(input + strconv.Itoa(index+i+1))
+		var hash string
+		if isPartTwo {
+			hash = getMD5HashPt2(input + strconv.Itoa(index+i+1))
+		} else {
+			hash = getMD5Hash(input + strconv.Itoa(index+i+1))
+		}
 		if fiveInRow(hash, charToMatch) {
-			validIndexes[index] = true
-			return
+			return true
 		}
 	}
+
+	return false
 }
