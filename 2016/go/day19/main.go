@@ -109,6 +109,10 @@ func partTwo(contents string) {
 		current = elfList[index]
 		// Grab the next target:
 		oppositeIndex = currentOpposite[1]
+		if numRemaining%2 == 1 {
+			// If odd, we bump 1 additional step to account for being on the left of 2 previously
+			oppositeIndex = elfList[oppositeIndex][1]
+		}
 		currentOpposite = elfList[oppositeIndex]
 		numRemaining--
 
