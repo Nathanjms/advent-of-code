@@ -27,8 +27,6 @@ if [ -d "$path/day$day" ]; then
     exit 1
 fi
 
-echo "$path/dayx"
-
 # Ensure dayx folder exists:
 if ! [ -d "$path/dayx" ]; then
     echo "Folder dayx does not exist, aborting..."
