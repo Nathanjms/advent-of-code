@@ -3,7 +3,6 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -57,17 +56,30 @@ func partOne(contents string) {
 	})
 }
 
-type Elf struct {
-	next *Elf
-	prev *Elf
-	id   int
-}
-
 func partTwo(contents string) {
 	numElves, _ := strconv.Atoi(contents)
 
+	elfList := make(map[int][2]int, 0)
+
+	// This seems harder... we dont want a slice with >3 mil entries in if possible. Let's try it though, using a doubly-linked list
+	for i := 0; i < numElves; i++ {
+		prev := i - 1
+		next := i + 1
+		if i == 0 {
+			prev = numElves - 1
+		}
+
+		if i == numElves-1 {
+			next = 0
+		}
+
+		elfList[i] = [2]int{
+			prev,
+			next,
+		}
+	}
+
 	/**
-	This seems harder... we dont want a slice with >3 mil entries in if possible. Let's try it though, using a doubly-linked list
 	Pseudocode from https://en.wikipedia.org/wiki/Doubly_linked_list
 	node  := someNode
 	do
@@ -76,72 +88,28 @@ func partTwo(contents string) {
 	while node ≠ someNode
 	*/
 
-	// First build the linked list
-	rootElf := Elf{
-		next: nil,
-		prev: nil,
-		id:   0,
-	}
+	index := 0
+	current := elfList[index]
+	numRemaining := numElves
 
-	var target Elf
-
-	elfList := rootElf
-
-	for i := 0; i < numElves; i++ {
-		if i == numElves-1 {
-			elfList.next = &rootElf
-		} else {
-			elfList.next = &Elf{
-				next: nil,
-				prev: &elfList,
-				id:   i + 1,
-			}
-		}
-		elfList = *elfList.next
-		if i == numElves/2 {
-			target = elfList
+	for {
+		currentOpposite := elfList[int(math.Floor(float64(numRemaining)/2))] // Need to account for non-0 index!
+		// Move the prev of the opposite to have the same prev value, but the next value from the removed one
+		elfList[currentOpposite[0]] = [2]int{elfList[currentOpposite[0]][0], currentOpposite[1]}
+		// Move the next of the opposite to have the same next value, but the prev value from the removed one
+		elfList[currentOpposite[1]] = [2]int{currentOpposite[0], elfList[currentOpposite[1]][1]}
+		// We remove this one by altering it's neighbours to skip it
+		index = current[1]
+		current = elfList[index]
+		numRemaining--
+		if numRemaining == 1 {
+			break
 		}
 	}
-	rootElf.prev = &elfList
-
-	fmt.Println(elfList, target)
-
-	// index := 0
-	// current := elfList
-	// numRemaining := numElves
-
-	// for {
-	// 	oppositeIndex := getOppositeIndex(numRemaining, index, &elfList)
-	// 	// oppositeIndex := (int(math.Floor(float64(numRemaining)/2)) + index) % numRemaining
-	// 	currentOpposite := elfList[oppositeIndex]
-	// 	// Move the prev of the opposite to have the same prev value, but the next value from the removed one
-	// 	elfList[currentOpposite[0]] = [2]int{elfList[currentOpposite[0]][0], currentOpposite[1]}
-	// 	// Move the next of the opposite to have the same next value, but the prev value from the removed one
-	// 	elfList[currentOpposite[1]] = [2]int{currentOpposite[0], elfList[currentOpposite[1]][1]}
-	// 	// We remove this one by altering it's neighbours to skip it
-	// 	index = current[1]
-	// 	current = elfList[index]
-	// 	numRemaining--
-	// 	fmt.Println(numRemaining)
-	// 	if numRemaining == 1 {
-	// 		break
-	// 	}
-	// }
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   19,
 		Part:  2,
-		Value: "todo",
+		Value: index - 1,
 	})
-}
-
-func getOppositeIndex(numRemaining int, index int, elfList *map[int][2]int) int {
-	// Step as many steps as we need through each index
-	steps := (int(math.Floor(float64(numRemaining) / 2)))
-	for i := 0; i < steps; i++ {
-		// Step to the next elf from the current one
-		index = (*elfList)[index][1]
-	}
-
-	return index
 }
