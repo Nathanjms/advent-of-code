@@ -3,6 +3,7 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -93,7 +94,9 @@ func partTwo(contents string) {
 	numRemaining := numElves
 
 	for {
-		currentOpposite := elfList[int(math.Floor(float64(numRemaining)/2))] // Need to account for non-0 index!
+		oppositeIndex := getOppositeIndex(numRemaining, index, &elfList)
+		// oppositeIndex := (int(math.Floor(float64(numRemaining)/2)) + index) % numRemaining
+		currentOpposite := elfList[oppositeIndex]
 		// Move the prev of the opposite to have the same prev value, but the next value from the removed one
 		elfList[currentOpposite[0]] = [2]int{elfList[currentOpposite[0]][0], currentOpposite[1]}
 		// Move the next of the opposite to have the same next value, but the prev value from the removed one
@@ -102,6 +105,7 @@ func partTwo(contents string) {
 		index = current[1]
 		current = elfList[index]
 		numRemaining--
+		fmt.Println(numRemaining)
 		if numRemaining == 1 {
 			break
 		}
@@ -110,6 +114,17 @@ func partTwo(contents string) {
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   19,
 		Part:  2,
-		Value: index - 1,
+		Value: index + 1,
 	})
+}
+
+func getOppositeIndex(numRemaining int, index int, elfList *map[int][2]int) int {
+	// Step as many steps as we need through each index
+	steps := (int(math.Floor(float64(numRemaining) / 2)))
+	for i := 0; i < steps; i++ {
+		// Step to the next elf from the current one
+		index = (*elfList)[index][1]
+	}
+
+	return index
 }
