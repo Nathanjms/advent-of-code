@@ -3,7 +3,6 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -90,23 +89,31 @@ func partTwo(contents string) {
 	*/
 
 	index := 0
-	current := elfList[index]
 	numRemaining := numElves
+	current := elfList[index]
+	oppositeIndex := int(math.Floor(float64(numElves) / 2))
+	currentOpposite := elfList[oppositeIndex]
 
 	for {
-		oppositeIndex := getOppositeIndex(numRemaining, index, &elfList)
-		// oppositeIndex := (int(math.Floor(float64(numRemaining)/2)) + index) % numRemaining
-		currentOpposite := elfList[oppositeIndex]
 		// Move the prev of the opposite to have the same prev value, but the next value from the removed one
 		elfList[currentOpposite[0]] = [2]int{elfList[currentOpposite[0]][0], currentOpposite[1]}
 		// Move the next of the opposite to have the same next value, but the prev value from the removed one
 		elfList[currentOpposite[1]] = [2]int{currentOpposite[0], elfList[currentOpposite[1]][1]}
-		// We remove this one by altering it's neighbours to skip it
+
+		// Reset in case this record has been manipulated!
+		current = elfList[index]
+		currentOpposite = elfList[oppositeIndex]
+		// Now we are safe to bump them!
+		// Go to the next elf:
 		index = current[1]
 		current = elfList[index]
+		// Grab the next target:
+		oppositeIndex = currentOpposite[1]
+		currentOpposite = elfList[oppositeIndex]
 		numRemaining--
-		fmt.Println(numRemaining)
-		if numRemaining == 1 {
+
+		if index == elfList[index][1] {
+			// Stop when the next elf is the current elf
 			break
 		}
 	}
@@ -116,15 +123,4 @@ func partTwo(contents string) {
 		Part:  2,
 		Value: index + 1,
 	})
-}
-
-func getOppositeIndex(numRemaining int, index int, elfList *map[int][2]int) int {
-	// Step as many steps as we need through each index
-	steps := (int(math.Floor(float64(numRemaining) / 2)))
-	for i := 0; i < steps; i++ {
-		// Step to the next elf from the current one
-		index = (*elfList)[index][1]
-	}
-
-	return index
 }
