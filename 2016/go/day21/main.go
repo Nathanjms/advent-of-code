@@ -3,7 +3,6 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -61,7 +60,6 @@ func partTwo(contents []string) {
 func doInstructions(instructions []string, password []byte) []byte {
 	for _, instruction := range instructions {
 		// Does it start with 'swap position'
-		fmt.Println(instruction[0:6])
 		if instruction[0:6] == "swap p" {
 			indexOne, _ := strconv.Atoi(string(instruction[14]))
 			indexTwo, _ := strconv.Atoi(string(instruction[len(instruction)-1]))
@@ -86,14 +84,20 @@ func doInstructions(instructions []string, password []byte) []byte {
 			// rotate based on position of letter X means that the whole string should be rotated to the right based on the index of letter X (counting from 0) as determined before this instruction does any rotations. Once the index is determined, rotate the string to the right one time, plus a number of times equal to that index, plus one additional time if the index was at least 4.
 			index := getIndexOfLetter(instruction[len(instruction)-1], password)
 
+			rotations := index + 1
+
 			if index >= 4 {
-				index++
+				rotations++
 			}
+
+			rotations = rotations % len(password)
+
+			reversalAmount := len(password) - rotations
 
 			tempPassword := make([]byte, len(password))
 
 			for i := 0; i < len(password); i++ {
-				tempPassword[i] = password[(i+index)%len(password)]
+				tempPassword[i] = password[(i+reversalAmount)%len(password)]
 			}
 
 			password = tempPassword
@@ -141,30 +145,49 @@ func doInstructions(instructions []string, password []byte) []byte {
 		// Does it start with 'move'
 		if instruction[0:4] == "move" {
 			// move position 1 to position 2
-			indexOne, _ := strconv.Atoi(string(instruction[15]))
+			indexOne, _ := strconv.Atoi(string(instruction[14]))
 			indexTwo, _ := strconv.Atoi(string(instruction[len(instruction)-1]))
 
 			passwordTemp := make([]byte, len(password))
 
+			hasFlipped := false
+			// Shortcut: if indexOne is RHS of indexTwo, flip password and then flip back at end:
+			if indexOne > indexTwo {
+				hasFlipped = true
+				password = flipPassword(password)
+
+				indexOne = len(password) - 1 - indexOne
+				indexTwo = len(password) - 1 - indexTwo
+			}
+
 			for i := 0; i < len(password); i++ {
+				// Everything before it remains as it is
 				if i < indexOne {
+					passwordTemp[i] = password[i]
 					continue
 				}
 
-				if i <= indexTwo {
-					passwordTemp[i] = password[(i-1+len(password))%len(password)]
+				if i < indexTwo {
+					passwordTemp[i] = password[i+1]
+					continue
 				}
 
 				if i == indexTwo {
 					passwordTemp[i] = password[indexOne]
+					continue
 				}
 
 				if i > indexTwo {
-					break
+					passwordTemp[i] = password[i]
+					continue
 				}
 			}
 
-			password = passwordTemp
+			if hasFlipped {
+				password = flipPassword(passwordTemp)
+			} else {
+				password = passwordTemp
+			}
 
 			continue
 		}
@@ -180,4 +203,12 @@ func getIndexOfLetter(letter byte, password []byte) int {
 		}
 	}
 	return -1
+}
+
+func flipPassword(password []byte) []byte {
+	flipped := make([]byte, len(password))
+	for i := 0; i < len(password); i++ {
+		flipped[i] = password[len(password)-i-1]
+	}
+	return flipped
 }
