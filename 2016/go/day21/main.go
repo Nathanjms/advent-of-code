@@ -50,10 +50,22 @@ func partOne(contents []string) {
 }
 
 func partTwo(contents []string) {
+	// Think we need to get all permutations of abcdefgh, and then feed it through instructions to see if it matches "fbgdceah".
+	// Maybe could write reverse instructions instead, but 8! = 40320 is maybe small enough?
+	start := []byte("abcdefgh")
+	target := []byte("fbgdceah")
+
+	answer := make([]byte, len(start))
+	for _, testPassword := range permutations(start) {
+		if string(doInstructions(contents, testPassword)) == string(target) {
+			answer = testPassword
+			break
+		}
+	}
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   21,
 		Part:  2,
-		Value: "TODO",
+		Value: string(answer),
 	})
 }
 
@@ -211,4 +223,33 @@ func flipPassword(password []byte) []byte {
 		flipped[i] = password[len(password)-i-1]
 	}
 	return flipped
+}
+
+// Generate permutations using Heap's Algorithm (https://en.wikipedia.org/wiki/Heap%27s_algorithm)
+func permutations(arr []byte) [][]byte {
+	var helper func([]byte, int)
+	res := [][]byte{}
+
+	helper = func(arr []byte, n int) {
+		if n == 1 {
+			tmp := make([]byte, len(arr))
+			copy(tmp, arr)
+			res = append(res, tmp)
+		} else {
+			for i := 0; i < n; i++ {
+				helper(arr, n-1)
+				if n%2 == 1 {
+					tmp := arr[i]
+					arr[i] = arr[n-1]
+					arr[n-1] = tmp
+				} else {
+					tmp := arr[0]
+					arr[0] = arr[n-1]
+					arr[n-1] = tmp
+				}
+			}
+		}
+	}
+	helper(arr, len(arr))
+	return res
 }
