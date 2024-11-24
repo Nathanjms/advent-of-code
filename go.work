@@ -3,3 +3,4 @@ go 1.21.5
 use ./shared/go
 use ./2015/go
 use ./2016/go
+use ./2024/go
