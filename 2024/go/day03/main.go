@@ -80,6 +80,7 @@ func partTwo(contents string) {
 			multiplier += valOne * valTwo
 		}
 	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   3,
 		Part:  2,
