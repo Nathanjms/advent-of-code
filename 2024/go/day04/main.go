@@ -36,8 +36,9 @@ func partOne(contents []string) {
 	// Go through the grid, and for every X we encounter, check for the word Xmas
 	for i, line := range contents {
 		for j := range line {
-			if contents[i][j] == 'X' && checkForXmas(i, j, &contents) {
-				xmasCount++
+			if contents[i][j] == 'X' {
+				qty := checkForXmas(i, j, &contents)
+				xmasCount += qty
 			}
 		}
 	}
@@ -49,14 +50,23 @@ func partOne(contents []string) {
 }
 
 func partTwo(contents []string) {
+	crossMasCount := 0
+	// Go through the grid, and for every X we encounter, check for the word Xmas
+	for i, line := range contents {
+		for j := range line {
+			if contents[i][j] == 'A' && checkForCrossMas(i, j, &contents) {
+				crossMasCount++
+			}
+		}
+	}
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   4,
 		Part:  2,
-		Value: "TODO",
+		Value: crossMasCount,
 	})
 }
 
-func checkForXmas(i int, j int, contents *[]string) bool {
+func checkForXmas(i int, j int, contents *[]string) int {
 	// deifne the steps - probably a better way to do this just with [-1,0,1] but this isnt too long to write
 	directions := [8][2]int{
 		{1, 0},
@@ -74,6 +84,8 @@ func checkForXmas(i int, j int, contents *[]string) bool {
 		2: 'A',
 		3: 'S',
 	}
+
+	matches := 0
 
 	for _, direction := range directions {
 		// Check we've not exceeded the range for the current direction
@@ -94,8 +106,33 @@ func checkForXmas(i int, j int, contents *[]string) bool {
 		}
 
 		if isAMatch {
-			return true
+			matches++
 		}
+	}
+
+	return matches
+
+}
+
+func checkForCrossMas(i int, j int, contents *[]string) bool {
+	// Manually check this time as fewer cases
+
+	// First check boundaries are not exceeded
+	if i-1 < 0 || j-1 < 0 || j+1 > len(*contents)-1 || i+1 > len(*contents)-1 {
+		// Out of range this way
+		return false
+	}
+
+	// first check left diag - \
+	if ((*contents)[i-1][j-1] == 'M' && (*contents)[i+1][j+1] == 'S') || ((*contents)[i-1][j-1] == 'S' && (*contents)[i+1][j+1] == 'M') {
+		//safe to continue if here - mainly using the else
+	} else {
+		return false
+	}
+
+	// next check right diag - /
+	if ((*contents)[i-1][j+1] == 'M' && (*contents)[i+1][j-1] == 'S') || ((*contents)[i-1][j+1] == 'S' && (*contents)[i+1][j-1] == 'M') {
+		return true
 	}
 
 	return false
