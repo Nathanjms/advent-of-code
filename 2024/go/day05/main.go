@@ -3,7 +3,6 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -108,8 +107,6 @@ func partTwo(contents []string) {
 			invalidUpdates = append(invalidUpdates, update)
 		}
 	}
-
-	fmt.Println(invalidUpdates)
 
 	middleNumSum := 0
 	for _, update := range invalidUpdates {
