@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"sort"
 	"strconv"
@@ -112,6 +113,7 @@ func partTwo(contents []string) {
 
 	middleNumSum := 0
 	for _, update := range invalidUpdates {
+		update := bruteForceUntilValid(update, instructions)
 		sort.Slice(update, func(i, j int) bool {
 			return getSortScore(update, i, instructions) < getSortScore(update, j, instructions)
 		})
@@ -183,23 +185,33 @@ func getSortScore(update Update, index int, instructions []Instruction) int {
 	return sortScore
 }
 
-// func orderUpdateFromInstruction(update *Update, instruction Instruction) {
-// 	firstPageNum := getIndexOfInt(*update, instruction[0])
-// 	if firstPageNum == -1 {
-// 		// Not exists so can skip
-// 		return
-// 	}
+func bruteForceUntilValid(update Update, instructions []Instruction) Update {
+	isValid := true
 
-// 	secondPageNum := getIndexOfInt(*update, instruction[1])
+	for {
+		for _, instruction := range instructions {
+			firstPageNum := getIndexOfInt(update, instruction[0])
+			if firstPageNum == -1 {
+				// Not exists so can skip
+				continue
+			}
 
-// 	if secondPageNum == -1 {
-// 		return
-// 	}
+			secondPageNum := getIndexOfInt(update, instruction[1])
 
-// 	if secondPageNum < firstPageNum {
-// 		swapF := reflect.Swapper(*update)
-// 		swapF(firstPageNum, secondPageNum)
+			if secondPageNum == -1 {
+				continue
+			}
 
-// 		orderUpdateFromInstruction(update, instruction)
-// 	}
-// }
+			if secondPageNum < firstPageNum {
+				swapF := reflect.Swapper(update)
+				swapF(firstPageNum, secondPageNum)
+
+				update = bruteForceUntilValid(update, instructions)
+			}
+		}
+
+		if isValid {
+			return update
+		}
+	}
+}
