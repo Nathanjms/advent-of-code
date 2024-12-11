@@ -105,11 +105,80 @@ func takeFromEnd(currentFileId int64, freeSpace int64, fileBlocks *[]FileBlock) 
 	return returnVal
 }
 
+type posSize struct {
+	pos  int64
+	size int64
+}
+
 func partTwo(contents string) {
+	files := make(map[int64]posSize, 0)
+	blanks := make([]posSize, 0) // IDX 0 pos, IDX 1 length
+	currentId := int64(0)
+	currentPosition := int64(0)
+	for i := 0; i < len(contents); i = i + 2 {
+		size, err := strconv.ParseInt(string(contents[i]), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		lastIndex := i + 1
+		freeSpace := int64(0)
+		if i+1 < len(contents) {
+			freeSpace, err = strconv.ParseInt(string(contents[lastIndex]), 10, 64)
+		}
+		if err != nil {
+			panic(err)
+		}
+
+		files[currentId] = posSize{currentPosition, size}
+		blanks = append(blanks, posSize{currentPosition + size, freeSpace})
+
+		currentId++
+		currentPosition += size + freeSpace
+	}
+
+	for {
+		currentId--
+		if currentId < 0 {
+			break
+		}
+
+		file := files[currentId]
+
+		// Find the next blank;
+		for i := 0; i < len(blanks); i++ {
+			blank := blanks[i]
+
+			if blank.pos >= file.pos {
+				// RHS of it so we dont care
+				break
+			}
+
+			if blank.size >= file.size {
+				files[currentId] = posSize{blank.pos, file.size}
+				if blank.size == file.size {
+					// Same size - delete the blank
+					blanks = removeAtIndex(blanks, i)
+				} else {
+					// Larger - shrink the available space
+					blanks[i].pos += file.size  // move position along
+					blanks[i].size -= file.size // drop size
+				}
+				break
+			}
+		}
+	}
+
+	sum := int64(0)
+	for fileId, file := range files {
+		for n := file.pos; n < file.pos+file.size; n++ {
+			sum += n * fileId
+		}
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   9,
 		Part:  2,
-		Value: "TODO",
+		Value: sum,
 	})
 }
 
@@ -139,4 +208,10 @@ func parseInput(contents string) []FileBlock {
 	}
 
 	return fileBlocks
+}
+
+func removeAtIndex(s []posSize, index int) []posSize {
+	clone := make([]posSize, len(s))
+	copy(clone, s)
+	return append(clone[:index], clone[index+1:]...)
 }
