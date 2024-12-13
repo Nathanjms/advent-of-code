@@ -4,6 +4,7 @@ import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -37,34 +38,62 @@ func main() {
 func partOne(contents []string) {
 	equations := parseInput(contents)
 
-	validEquationButtonPresses := make([][2]int64, 0)
+	totalTickets := int64(0)
 
 	// Now we have equations, use cramer's rule to determine X and Y (aka A btn presses and B btn presses)
 	for _, eqn := range equations {
-		x := ((eqn.cOne * eqn.bTwo) - (eqn.bOne - eqn.cTwo)) / ((eqn.aOne * eqn.bTwo) - (eqn.bOne * eqn.aTwo))
-		y := ((eqn.aOne * eqn.cTwo) - (eqn.cOne - eqn.aTwo)) / ((eqn.aOne * eqn.bTwo) - (eqn.bOne * eqn.aTwo))
+		countA := float64(((eqn.cOne * eqn.bTwo) - (eqn.bOne * eqn.cTwo))) / float64(((eqn.aOne * eqn.bTwo) - (eqn.bOne * eqn.aTwo)))
 
-		fmt.Println(x, y)
+		if _, frac := math.Modf(countA); frac != 0 {
+			continue
+		}
+		countB := float64((eqn.cOne - eqn.aOne*int64(countA)) / eqn.bOne)
 
-		if x < 100 && y < 100 {
-			validEquationButtonPresses = append(validEquationButtonPresses, [2]int64{x, y})
+		if _, frac := math.Modf(countB); frac != 0 {
+			continue
+		}
+
+		if countA > 0 && countA < 100 && countB > 0 && countB < 100 {
+			totalTickets += int64(countA*3 + countB)
 		}
 	}
-
-	fmt.Println(validEquationButtonPresses)
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   13,
 		Part:  1,
-		Value: "TODO",
+		Value: totalTickets,
 	})
 }
 
 func partTwo(contents []string) {
+	equations := parseInput(contents)
+
+	totalTickets := int64(0)
+
+	// Now we have equations, use cramer's rule to determine X and Y (aka A btn presses and B btn presses)
+	for _, eqn := range equations {
+		eqn.cOne += 10000000000000
+		eqn.cTwo += 10000000000000
+		countA := float64(((eqn.cOne * eqn.bTwo) - (eqn.bOne * eqn.cTwo))) / float64(((eqn.aOne * eqn.bTwo) - (eqn.bOne * eqn.aTwo)))
+
+		if _, frac := math.Modf(countA); frac != 0 {
+			continue
+		}
+		countB := float64((eqn.cOne - eqn.aOne*int64(countA))) / float64(eqn.bOne)
+
+		if _, frac := math.Modf(countB); frac != 0 {
+			continue
+		}
+
+		if countA > 0 && countB > 0 {
+			totalTickets += int64(countA*3 + countB)
+		}
+	}
+
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   13,
 		Part:  2,
-		Value: "TODO",
+		Value: totalTickets,
 	})
 }
 
@@ -98,9 +127,9 @@ func parseInput(contents []string) []equationsStruct {
 
 			if match[1] == "A" {
 				equations[currentIndex].aOne = a
-				equations[currentIndex].bOne = b
+				equations[currentIndex].aTwo = b
 			} else {
-				equations[currentIndex].aTwo = a
+				equations[currentIndex].bOne = a
 				equations[currentIndex].bTwo = b
 			}
 
@@ -110,8 +139,6 @@ func parseInput(contents []string) []equationsStruct {
 
 			equations[currentIndex].cOne = prizeX
 			equations[currentIndex].cTwo = prizeY
-
-			fmt.Println(equations[currentIndex])
 		}
 	}
 
