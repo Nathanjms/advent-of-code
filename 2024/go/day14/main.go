@@ -122,8 +122,19 @@ func partTwo(contents []string) {
 
 	cacheMap := make(map[robotStruct][2]int)
 
-	seconds := 10_000
-	eightInARowSecond := 0
+	seconds := 10_000 // Try 10,000
+
+	// We'll output each second into a file ans then grep for when we have lots of robots in a line, hopefully this works
+	fo, err := os.Create("output")
+	if err != nil {
+		panic(err)
+	}
+	// close fo on exit and check for its returned error
+	defer func() {
+		if err := fo.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
 	for i := 1; i <= seconds; i++ {
 		for j, robot := range robots {
@@ -142,32 +153,14 @@ func partTwo(contents []string) {
 
 		}
 
-		// Let's see if we have 8 in a line, feels a bit arbitrary but might work?
 		grid := buildMap(rows, columns, robots)
-		for i := 0; i < rows; i++ {
-			numInRow := 0
-			for j := 0; j < columns; j++ {
-				if grid[i][j] == '0' {
-					numInRow++
-				} else if numInRow > 0 {
-					break
-				}
-
-				if numInRow >= 8 {
-					eightInARowSecond = seconds
-				}
-			}
-
-			if eightInARowSecond > 0 {
-				break
-			}
-		}
+		outputMap(&grid, fo, i)
 	}
 	// Not really sure how to do this one... maybe just output
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   14,
 		Part:  2,
-		Value: eightInARowSecond,
+		Value: "Run grep on the output and look for the tree! `grep 00000000000000000000 ./output -C 10`",
 	})
 }
 
@@ -212,6 +205,20 @@ func buildMap(rows int, columns int, robots []robotStruct) [][]byte {
 
 	return grid
 
+}
+
+func outputMap(grid *[][]byte, fo *os.File, seconds int) {
+	fo.WriteString("Seconds: " + strconv.Itoa(seconds))
+	fo.WriteString("\n")
+
+	for _, line := range *grid {
+		// write a chunk
+		if _, err := fo.Write(line); err != nil {
+			panic(err)
+		}
+
+		fo.WriteString("\n")
+	}
 }
 
 func displayMap(rows int, columns int, robots []robotStruct) {
