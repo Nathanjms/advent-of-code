@@ -64,7 +64,7 @@ func partOne(contents []string) {
 
 	// Now, go through the instructions;
 	for _, instruction := range instructions {
-		coordinate = moveRobotByInstruction(coordinate, instruction, &grid, false)
+		coordinate = moveRobotByInstruction(coordinate, instruction, &grid)
 		// fmt.Println(string(instruction))
 		// displayGrid(&grid)
 	}
@@ -110,7 +110,7 @@ func partTwo(contents []string) {
 
 	// Now, go through the instructions;
 	for _, instruction := range instructions {
-		coordinate = moveRobotByInstruction(coordinate, instruction, &grid, true)
+		coordinate = moveRobotByInstruction(coordinate, instruction, &grid)
 		// fmt.Println(string(instruction))
 		// displayGrid(&grid)
 	}
@@ -132,53 +132,31 @@ func partTwo(contents []string) {
 	})
 }
 
-func moveRobotByInstruction(currentPosition [2]int, direction byte, grid *[][]byte, isPartTwo bool) [2]int {
+func moveRobotByInstruction(currentPosition [2]int, direction byte, grid *[][]byte) [2]int {
 
-	if isPartTwo {
-		movementMappings := make(map[[2]int]moveMapPt2Item, 0)
-		if canMove := canMoveDirectionPt2(currentPosition, direction, grid, &movementMappings); canMove {
-			newPosition := [2]int{
-				currentPosition[0] + DIRECTION_MAPPINGS[direction][0],
-				currentPosition[1] + DIRECTION_MAPPINGS[direction][1],
-			}
-
-			for _, mapItem := range movementMappings {
-				(*grid)[mapItem.oldPosition[0]][mapItem.oldPosition[1]] = '.'
-			}
-
-			for newPos, mapItem := range movementMappings {
-				(*grid)[newPos[0]][newPos[1]] = mapItem.newChar
-			}
-
-			// Also ensure the original spot is now free!
-			(*grid)[currentPosition[0]][currentPosition[1]] = '.'
-
-			return newPosition
+	movementMappings := make(map[[2]int]moveMapItem, 0)
+	if canMoveDirection(currentPosition, direction, grid, &movementMappings) {
+		newPosition := [2]int{
+			currentPosition[0] + DIRECTION_MAPPINGS[direction][0],
+			currentPosition[1] + DIRECTION_MAPPINGS[direction][1],
 		}
-	} else {
-		movementMappings := make(map[[2]int]byte, 0)
 
-		if canMove := canMoveDirection(currentPosition, direction, 0, grid, &movementMappings); canMove {
-			newPosition := [2]int{
-				currentPosition[0] + DIRECTION_MAPPINGS[direction][0],
-				currentPosition[1] + DIRECTION_MAPPINGS[direction][1],
-			}
-
-			for newPos, newByte := range movementMappings {
-				(*grid)[newPos[0]][newPos[1]] = newByte
-			}
-
-			// Also ensure the original spot is now free!
-			(*grid)[currentPosition[0]][currentPosition[1]] = '.'
-
-			return newPosition
+		// First set them all to empty, and then fill them all in. Might be overkill, but it's not a huge operation so it'll do!
+		for _, mapItem := range movementMappings {
+			(*grid)[mapItem.oldPosition[0]][mapItem.oldPosition[1]] = '.'
 		}
+
+		for newPos, mapItem := range movementMappings {
+			(*grid)[newPos[0]][newPos[1]] = mapItem.newChar
+		}
+
+		return newPosition
 	}
 
 	return currentPosition
 }
 
-func canMoveDirection(currentPosition [2]int, direction byte, numberMoved int, grid *[][]byte, movementMappings *map[[2]int]byte) bool {
+func canMoveDirection(currentPosition [2]int, direction byte, grid *[][]byte, movementMappings *map[[2]int]moveMapItem) bool {
 	newPosition := [2]int{
 		currentPosition[0] + DIRECTION_MAPPINGS[direction][0],
 		currentPosition[1] + DIRECTION_MAPPINGS[direction][1],
@@ -189,41 +167,18 @@ func canMoveDirection(currentPosition [2]int, direction byte, numberMoved int, g
 		return false
 	}
 
-	(*movementMappings)[newPosition] = (*grid)[currentPosition[0]][currentPosition[1]]
-
-	if (*grid)[newPosition[0]][newPosition[1]] == 'O' {
-		// It's a boulder, so maybe we can move it?
-		return canMoveDirection(newPosition, direction, numberMoved+1, grid, movementMappings)
-	}
-
-	// Only other case is it's safe to move!
-	return true
-}
-
-type moveMapPt2Item struct {
-	newChar     byte
-	oldPosition [2]int
-}
-
-func canMoveDirectionPt2(currentPosition [2]int, direction byte, grid *[][]byte, movementMappings *map[[2]int]moveMapPt2Item) bool {
-	newPosition := [2]int{
-		currentPosition[0] + DIRECTION_MAPPINGS[direction][0],
-		currentPosition[1] + DIRECTION_MAPPINGS[direction][1],
-	}
-	if _, ok := (*movementMappings)[newPosition]; ok {
-		return true
-	}
-
-	if (*grid)[newPosition[0]][newPosition[1]] == '#' {
-		// I think this covers the 'out of bounds' case and so we do not need 2 if statements c:
-		return false
-	}
-
-	(*movementMappings)[newPosition] = moveMapPt2Item{
+	(*movementMappings)[newPosition] = moveMapItem{
 		newChar:     (*grid)[currentPosition[0]][currentPosition[1]],
 		oldPosition: currentPosition,
 	}
 
+	// Part 1 only if statement!
+	if (*grid)[newPosition[0]][newPosition[1]] == 'O' {
+		// It's a boulder, so maybe we can move it?
+		return canMoveDirection(newPosition, direction, grid, movementMappings)
+	}
+
+	// Part 2 only if statement!
 	if (*grid)[newPosition[0]][newPosition[1]] == '[' {
 		// It's a box, so maybe we can move it, need to now check 2 positions (unless we're going right)
 		if direction == '>' {
@@ -231,17 +186,17 @@ func canMoveDirectionPt2(currentPosition [2]int, direction byte, grid *[][]byte,
 				newPosition[0] + DIRECTION_MAPPINGS[direction][0],
 				newPosition[1] + DIRECTION_MAPPINGS[direction][1],
 			}
-			// (*movementMappings)[newLeftBracketPosition] = '['
-			(*movementMappings)[newLeftBracketPosition] = moveMapPt2Item{
+			(*movementMappings)[newLeftBracketPosition] = moveMapItem{
 				newChar:     '[',
 				oldPosition: [2]int{currentPosition[0], currentPosition[1] + 1},
 			}
-			return canMoveDirectionPt2([2]int{newPosition[0], newPosition[1] + 1}, direction, grid, movementMappings)
+			return canMoveDirection([2]int{newPosition[0], newPosition[1] + 1}, direction, grid, movementMappings)
 		}
-		return canMoveDirectionPt2(newPosition, direction, grid, movementMappings) &&
-			canMoveDirectionPt2([2]int{newPosition[0], newPosition[1] + 1}, direction, grid, movementMappings)
+		return canMoveDirection(newPosition, direction, grid, movementMappings) &&
+			canMoveDirection([2]int{newPosition[0], newPosition[1] + 1}, direction, grid, movementMappings)
 	}
 
+	// Part 2 only if statement!
 	if (*grid)[newPosition[0]][newPosition[1]] == ']' {
 		// It's a box, so maybe we can move it, need to now check 2 positions (unless we're going left)
 		if direction == '<' {
@@ -249,19 +204,23 @@ func canMoveDirectionPt2(currentPosition [2]int, direction byte, grid *[][]byte,
 				newPosition[0] + DIRECTION_MAPPINGS[direction][0],
 				newPosition[1] + DIRECTION_MAPPINGS[direction][1],
 			}
-			// (*movementMappings)[newRightBracketPosition] = ']'
-			(*movementMappings)[newRightBracketPosition] = moveMapPt2Item{
+			(*movementMappings)[newRightBracketPosition] = moveMapItem{
 				newChar:     ']',
 				oldPosition: [2]int{currentPosition[0], currentPosition[1] - 1},
 			}
-			return canMoveDirectionPt2([2]int{newPosition[0], newPosition[1] - 1}, direction, grid, movementMappings)
+			return canMoveDirection([2]int{newPosition[0], newPosition[1] - 1}, direction, grid, movementMappings)
 		}
-		return canMoveDirectionPt2(newPosition, direction, grid, movementMappings) &&
-			canMoveDirectionPt2([2]int{newPosition[0], newPosition[1] - 1}, direction, grid, movementMappings)
+		return canMoveDirection(newPosition, direction, grid, movementMappings) &&
+			canMoveDirection([2]int{newPosition[0], newPosition[1] - 1}, direction, grid, movementMappings)
 	}
 
 	// Only other case is it's safe to move!
 	return true
+}
+
+type moveMapItem struct {
+	newChar     byte
+	oldPosition [2]int
 }
 
 func parseInput(contents []string, isPartTwo bool) ([][]byte, []byte) {
