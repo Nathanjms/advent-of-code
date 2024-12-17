@@ -3,7 +3,6 @@ package main
 import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
-	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -46,7 +45,7 @@ func partOne(contents []string) {
 }
 
 func partTwo(contents []string) {
-	totalSpotsOnAnyPath := dfs(contents, bfs(contents))
+	totalSpotsOnAnyPath := bfsPt2(contents, bfs(contents))
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   16,
@@ -154,12 +153,13 @@ type queueStructPt2 struct {
 	visitedPoints      map[[2]int]bool
 }
 
-func dfs(contents []string, pointsTarget int64) int {
+func bfsPt2(contents []string, bestPoints int64) int {
 	queue := make([]queueStructPt2, 0)
+	visitedBestScore := make(map[cacheKey]int64)
 	start, end := findStartAndEnd(contents)
+	visitedPoints := map[[2]int]bool{}
 
 	allShortestPathCoordinates := make(map[[2]int]bool)
-	visitedPoints := map[[2]int]bool{}
 
 	queue = append(queue, queueStructPt2{
 		pos:                start,
@@ -175,22 +175,22 @@ func dfs(contents []string, pointsTarget int64) int {
 			break
 		}
 
-		// Take the element with the highest points from the queue (should be the first)
-		element = queue[len(queue)-1]
-		queue = queue[:len(queue)-1]
-
-		if element.currPoints > pointsTarget {
+		if element.currPoints > bestPoints {
 			// If it's exceeded the shortest path's score, we can drop this path
 			continue
 		}
-		fmt.Println(len(queue), element.currPoints, len(element.visitedPoints))
 
-		// has this element been on this spot before?
-		if _, ok := element.visitedPoints[element.pos]; ok {
+		// Take the element with the lowest points from the queue (should be the first)
+		element, queue = queue[0], queue[1:]
+
+		// If visited, then we've been here with less points and so can skip
+		if points, ok := visitedBestScore[cacheKey{element.pos, element.currDirectionIndex}]; ok && points < element.currPoints {
 			continue
 		}
 
 		element.visitedPoints[element.pos] = true
+
+		visitedBestScore[cacheKey{element.pos, element.currDirectionIndex}] = element.currPoints
 
 		if element.pos == end {
 			addToShortestPathCoordinates(&allShortestPathCoordinates, element.visitedPoints)
@@ -210,12 +210,17 @@ func dfs(contents []string, pointsTarget int64) int {
 				continue
 			}
 
-			if _, ok := element.visitedPoints[[2]int{newI, newJ}]; ok {
-				continue
-			}
-
 			// Otherwise, we make the move and add to queue
-			if i == 0 && element.currPoints+1 <= pointsTarget {
+			if i == 0 {
+				// Have we been here with less score previously?
+				if points, ok := visitedBestScore[cacheKey{[2]int{newI, newJ}, element.currDirectionIndex}]; ok && points < element.currPoints+1 {
+					continue
+				}
+
+				// Would this take it out of range?
+				if element.currPoints+1 > bestPoints {
+					continue
+				}
 				// Just stepped forward - 1 point added;
 				queue = append(queue, queueStructPt2{
 					pos:                [2]int{newI, newJ},
@@ -223,8 +228,17 @@ func dfs(contents []string, pointsTarget int64) int {
 					currDirectionIndex: element.currDirectionIndex,
 					visitedPoints:      copyMap(element.visitedPoints),
 				})
-			} else if element.currPoints+1000 <= pointsTarget {
-				// Turned and stepped - 1000 + 1 point added
+			} else {
+				// Have we been here with less score previously?
+				if points, ok := visitedBestScore[cacheKey{[2]int{newI, newJ}, newDirIndex}]; ok && points < element.currPoints+1001 {
+					continue
+				}
+
+				// Would this take it out of range?
+				if element.currPoints+1001 > bestPoints {
+					continue
+				}
+				// Turned and stepped; 1000 + 1 point added
 				queue = append(queue, queueStructPt2{
 					pos:                [2]int{newI, newJ},
 					currPoints:         element.currPoints + 1001,
