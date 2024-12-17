@@ -185,6 +185,7 @@ func dfs(contents []string, pointsTarget int64) int {
 		}
 		fmt.Println(len(queue), element.currPoints, len(element.visitedPoints))
 
+		// has this element been on this spot before?
 		if _, ok := element.visitedPoints[element.pos]; ok {
 			continue
 		}
@@ -214,7 +215,7 @@ func dfs(contents []string, pointsTarget int64) int {
 			}
 
 			// Otherwise, we make the move and add to queue
-			if i == 0 {
+			if i == 0 && element.currPoints+1 <= pointsTarget {
 				// Just stepped forward - 1 point added;
 				queue = append(queue, queueStructPt2{
 					pos:                [2]int{newI, newJ},
@@ -222,7 +223,7 @@ func dfs(contents []string, pointsTarget int64) int {
 					currDirectionIndex: element.currDirectionIndex,
 					visitedPoints:      copyMap(element.visitedPoints),
 				})
-			} else {
+			} else if element.currPoints+1000 <= pointsTarget {
 				// Turned and stepped - 1000 + 1 point added
 				queue = append(queue, queueStructPt2{
 					pos:                [2]int{newI, newJ},
