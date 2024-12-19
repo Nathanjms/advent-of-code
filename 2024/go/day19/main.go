@@ -32,17 +32,12 @@ func main() {
 	partTwo(contents)
 }
 
-type cacheKey struct {
-	towel   string
-	pattern string
-}
-
 func partOne(contents []string) {
 	availableTowels, patterns := parseInput(contents)
 
 	possibleDesigns := 0
 
-	cacheMap := make(map[cacheKey]bool, 0)
+	cacheMap := make(map[string]bool, 0)
 
 	for _, pattern := range patterns {
 		if canMakeDesign(availableTowels, pattern, &cacheMap) {
@@ -57,20 +52,16 @@ func partOne(contents []string) {
 	})
 }
 
-func canMakeDesign(availableTowels map[string]bool, pattern string, cacheMap *map[cacheKey]bool) bool {
+func canMakeDesign(availableTowels map[string]bool, pattern string, cacheMap *map[string]bool) bool {
 	if len(pattern) == 0 {
 		return true
 	}
 
-	for towel := range availableTowels {
-		if val, ok := (*cacheMap)[cacheKey{pattern: pattern, towel: towel}]; ok {
-			if val {
-				return true
-			} else {
-				return false
-			}
-		}
+	if val, ok := (*cacheMap)[pattern]; ok {
+		return val
+	}
 
+	for towel := range availableTowels {
 		if len(towel) > len(pattern) {
 			continue // This towel is too big. Maybe we could drop from future recursions if slow performance
 		}
@@ -80,7 +71,7 @@ func canMakeDesign(availableTowels map[string]bool, pattern string, cacheMap *ma
 			// This is valid, so we can recursively determine if this towel is a valid one for this step
 			newPattern := pattern[len(towel):]
 			isValid := canMakeDesign(availableTowels, newPattern, cacheMap)
-			(*cacheMap)[cacheKey{pattern: newPattern, towel: towel}] = isValid
+			(*cacheMap)[newPattern] = isValid
 			if isValid {
 				return true
 			}
