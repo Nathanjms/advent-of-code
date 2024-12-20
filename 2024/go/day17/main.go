@@ -57,51 +57,42 @@ func partOne(contents []string) {
 
 }
 
+// I don't really understand this part, and have crafted the solution based on HyperNeutrino's video. TODO - come back to this later.
 func partTwo(contents []string) {
-	originalRegisters, instructions := parseInput(contents)
-	instructionsAsString := sliceToString(instructions)
-	hasFoundA := false
+	_, instructions := parseInput(contents)
 
-	A := int64(117440)
-	iterations := int64(0)
-	// Trial different A values;
-	for {
-		if iterations > 0 {
-			break
-		}
-		if hasFoundA {
-			break
-		}
-		instructionPointer := 0
-		output := make([]int64, 0)
-		registers := make(map[byte]int64)
-		registers['A'] = A
-		registers['B'] = originalRegisters['B']
-		registers['C'] = originalRegisters['C']
-		for {
-			if instructionPointer > len(instructions)-1 {
-				break
-			}
-
-			handleInstruction(&registers, instructions[instructionPointer], instructions[instructionPointer+1], &instructionPointer, &output)
-		}
-
-		if instructionsAsString == sliceToString(output) {
-			hasFoundA = true
-			break
-		}
-
-		// fmt.Println(A, instructionsAsString, sliceToString(output))
-
-		A++
-		iterations++
-	}
+	A := find(instructions, 0)
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   17,
 		Part:  2,
 		Value: A,
 	})
+}
+
+func find(instructions []int64, ans int64) int64 {
+	if len(instructions) == 0 {
+		return ans
+	}
+
+	// Recursively go through the instructions
+	for i := int64(0); i < 8; i++ {
+		var A, B, C int64
+		A = (ans << 3) + i
+		B = A % 8
+		B = B ^ 1
+		C = A >> B
+		// A = A >> 3 // Not a clue why we have to comment this out, but it's zero otherwise... Maybe because we care about the input of a, not how it changes?
+		B = B ^ C
+		B = B ^ 6
+		if B%8 == instructions[len(instructions)-1] {
+			sub := find(instructions[:len(instructions)-1], A)
+			if sub > 0 {
+				return sub
+			}
+		}
+	}
+	return 0
 }
 
 func sliceToString(slice []int64) string {
@@ -230,4 +221,22 @@ func parseInput(contents []string) (map[byte]int64, []int64) {
 	}
 
 	return registers, instructions
+}
+
+func outputForA(A int64, instructions []int64, originalRegisters map[byte]int64) []int64 {
+	instructionPointer := 0
+	output := make([]int64, 0)
+	registers := make(map[byte]int64)
+	registers['A'] = A
+	registers['B'] = originalRegisters['B']
+	registers['C'] = originalRegisters['C']
+	for {
+		if instructionPointer > len(instructions)-1 {
+			break
+		}
+
+		handleInstruction(&registers, instructions[instructionPointer], instructions[instructionPointer+1], &instructionPointer, &output)
+	}
+
+	return output
 }
