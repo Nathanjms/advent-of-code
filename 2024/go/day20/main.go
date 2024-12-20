@@ -4,6 +4,7 @@ import (
 	"aoc-shared/pkg/sharedcode"
 	"aoc-shared/pkg/sharedstruct"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -34,70 +35,123 @@ func main() {
 
 func partOne(contents []string) {
 	grid := parseToGrid(contents)
+	distancesToPoint := make([][]int, len(grid))
+	for i := 0; i < len(grid); i++ {
+		distancesToPoint[i] = make([]int, len(grid[i]))
+		for j := 0; j < len(grid[i]); j++ {
+			distancesToPoint[i][j] = -1
+		}
+	}
+
 	start, end := findStartAndEnd(contents)
-	numSeconds := bfs(grid, start, end)
-	savedSecondsCount := make(map[int]int, 0)
+	distancesToPoint[start[0]][start[1]] = 0
+	bfsDetermineDistances(grid, start, end, &distancesToPoint)
 
-	displayGrid(grid)
+	count := 0
 
-	// We'll go through all options of removals. If they can remove just 1, or 1&2 or 2, is this 3 options??
-	// We might need to avoid wasting time and duplicating, 1,2 != 2,1?? Will try without first
-	for i := 1; i < len(grid)-2; i++ {
-		for j := 1; j < len(grid[i])-1; j++ {
-			nextMustBeHash := false
-			if grid[i][j] == 'E' || grid[i][j] == 'S' {
+	// To avoid double counting, we only look at half the points per space;
+	halfDistances := [4][2]int{
+		{2, 0},
+		{1, 1},
+		{0, 2},
+		{-1, 1},
+	}
+
+	picoSecondsToSave := 100
+	if isUsingExample {
+		picoSecondsToSave = 40 // Expect 2 as the output
+	}
+
+	for i := 0; i < len(grid); i++ {
+		for j := 0; j < len(grid[i]); j++ {
+			if distancesToPoint[i][j] == -1 {
 				continue
 			}
-			if grid[i][j] != '#' {
-				continue
-				// // Go 4 directions and only valid if it is a #
-				// nextMustBeHash = true
-			}
 
-			for _, dir := range directions {
+			for _, dir := range halfDistances {
 				newI := i + dir[0]
 				newJ := j + dir[1]
 
 				// Out of bounds checks
-				if newI < 0 || newJ < 0 || newI > len(grid)-1 || newJ > len(grid[i])-1 {
+				if newI < 0 || newJ < 0 || newI > len(grid)-1 || newJ > len(grid[0])-1 {
 					continue
 				}
 
-				// Can't finish on an out of bounds tile!
 				if grid[newI][newJ] == '#' {
 					continue
 				}
 
-				if nextMustBeHash && grid[newI][newJ] != '#' {
-					// Would not be a cheat, so skip!
-					continue
-				}
-
-				newGrid := cloneGrid(grid)
-				newGrid[i][j] = '.'
-				if grid[newI][newJ] != 'E' && grid[newI][newJ] != 'S' {
-					newGrid[newI][newJ] = '.'
-				}
-
-				seconds := bfs(newGrid, start, end)
-				// Took 100s, now takes 55s. So saved 100-55=45 seconds
-				savedSeconds := numSeconds - seconds
-				if savedSeconds > 0 {
-					if savedSeconds == 64 {
-						fmt.Println()
-						displayGrid(newGrid)
-						fmt.Println("debug")
-					}
-					savedSecondsCount[savedSeconds]++
+				if int(math.Abs(float64(distancesToPoint[i][j]-distancesToPoint[newI][newJ]))) >= picoSecondsToSave+2 {
+					count++
 				}
 			}
+
 		}
 	}
 
 	sharedstruct.PrintOutput(sharedstruct.Output{
 		Day:   20,
 		Part:  1,
-		Value: savedSecondsCount,
+		Value: count,
+	})
+}
+
+func partTwo(contents []string) {
+	grid := parseToGrid(contents)
+	distancesToPoint := make([][]int, len(grid))
+	for i := 0; i < len(grid); i++ {
+		distancesToPoint[i] = make([]int, len(grid[i]))
+		for j := 0; j < len(grid[i]); j++ {
+			distancesToPoint[i][j] = -1
+		}
+	}
+
+	start, end := findStartAndEnd(contents)
+	distancesToPoint[start[0]][start[1]] = 0
+	bfsDetermineDistances(grid, start, end, &distancesToPoint)
+
+	count := 0
+
+	picoSecondsToSave := 100
+
+	visited := make(map[[2][2]int]bool, 0) // start and end
+
+	for i := 0; i < len(grid); i++ {
+		for j := 0; j < len(grid[i]); j++ {
+			for radius := 2; radius < 21; radius++ {
+				for di := 0; di < radius+1; di++ {
+					dj := radius - di
+					for _, dir := range [4][2]int{{i + di, j + dj}, {i + di, j - dj}, {i - di, j + dj}, {i - di, j - dj}} {
+						newI := dir[0]
+						newJ := dir[1]
+						if _, ok := visited[[2][2]int{{i, j}, {newI, newJ}}]; ok {
+							continue
+						}
+
+						visited[[2][2]int{{i, j}, {newI, newJ}}] = true
+
+						// Out of bounds checks
+						if newI < 0 || newJ < 0 || newI > len(grid)-1 || newJ > len(grid[0])-1 {
+							continue
+						}
+
+						if grid[newI][newJ] == '#' {
+							continue
+						}
+
+						if distancesToPoint[i][j]-distancesToPoint[newI][newJ] >= picoSecondsToSave+radius {
+							count++
+						}
+					}
+				}
+			}
+
+		}
+	}
+	sharedstruct.PrintOutput(sharedstruct.Output{
+		Day:   20,
+		Part:  2,
+		Value: count,
 	})
 }
 
@@ -113,10 +167,8 @@ type queueStruct struct {
 	steps int
 }
 
-func bfs(grid [][]byte, start [2]int, end [2]int) int {
-	// BFS now!
+func bfsDetermineDistances(grid [][]byte, start [2]int, end [2]int, distancesToPoint *[][]int) int {
 	queue := make([]queueStruct, 0)
-	visited := make(map[[2]int]bool)
 
 	queue = append(queue, queueStruct{
 		pos:   start,
@@ -132,18 +184,6 @@ func bfs(grid [][]byte, start [2]int, end [2]int) int {
 		// Grab the next element in queue
 		element, queue = queue[0], queue[1:]
 
-		// if visited, skip
-		_, ok := visited[element.pos]
-		if ok {
-			continue
-		}
-
-		if element.pos == end {
-			return element.steps
-		}
-
-		visited[element.pos] = true
-
 		for _, dir := range directions {
 			newI := element.pos[0] + dir[0]
 			newJ := element.pos[1] + dir[1]
@@ -157,6 +197,12 @@ func bfs(grid [][]byte, start [2]int, end [2]int) int {
 				continue
 			}
 
+			if (*distancesToPoint)[newI][newJ] != -1 {
+				continue
+			}
+
+			(*distancesToPoint)[newI][newJ] = (*distancesToPoint)[element.pos[0]][element.pos[1]] + 1
+
 			queue = append(queue, queueStruct{
 				pos:   [2]int{newI, newJ},
 				steps: element.steps + 1,
@@ -165,14 +211,6 @@ func bfs(grid [][]byte, start [2]int, end [2]int) int {
 	}
 
 	return -1
-}
-
-func partTwo(contents []string) {
-	sharedstruct.PrintOutput(sharedstruct.Output{
-		Day:   20,
-		Part:  2,
-		Value: "TODO",
-	})
 }
 
 func findStartAndEnd(contents []string) ([2]int, [2]int) {
