@@ -16,8 +16,10 @@ I started with 2023, and am now working my way from 2015. Keep an eye on the lis
 - [ ] 2022
 - [x] 2023
   - JavaScript
-- [ ] 2024
+- [x] 2024
   - Go (WIP)
+- [ ] 2025
+  - Python
 
 ## Go
 
