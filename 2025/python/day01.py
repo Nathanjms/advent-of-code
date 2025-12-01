@@ -57,11 +57,13 @@ def partTwo(defaultContentPath):
         # Now we're good to deal with the actual spinning
         modifier = 1 if line.startswith("R") else -1
 
-        startingVal = startingVal + (modifier * remainder)
+        tempVal = startingVal + (modifier * remainder)
 
-        if startingVal <= 0 or startingVal >= 100:
-            startingVal = (startingVal + 100) % 100
+        # Check if we crossed zero in this last bit, but exclude if we started on zero, since we would've counted this already
+        if startingVal != 0 and ((tempVal >= 100) or (tempVal <= 0)):
             timesOnZero += 1
+
+        startingVal = (tempVal + 100) % 100
 
     print({"Day": 1, "Part": 2, "Value": timesOnZero})
 
