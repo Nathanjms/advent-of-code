@@ -1,74 +1,58 @@
 import sys
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).parent
+DEFAULT_INPUT = SCRIPT_DIR / "example-input"
 
 
 def main():
-    defaultContentPath = "example-input"
-    #  If user has input an argument, then that becomes the path:
-    if len(sys.argv) > 1:
-        defaultContentPath = sys.argv[1]
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_INPUT
+    lines = [line.strip() for line in path.read_text().splitlines() if line.strip()]
 
-    partOne(defaultContentPath)
-    partTwo(defaultContentPath)
+    print({"Day": 1, "Part": 1, "Value": part_one(lines)})
+    print({"Day": 1, "Part": 2, "Value": part_two(lines)})
 
 
-def partOne(defaultContentPath):
-    lines = []
-
-    with open(defaultContentPath) as f:
-        for line in f:
-            lines.append(line.strip())
-
-    startingVal = 50
-    timesOnZero = 0
+def part_one(lines: list[str]) -> int:
+    position = 50
+    zero_hits = 0
 
     for line in lines:
-        modifier = 1 if line.startswith("R") else -1
-        startingVal = (startingVal + (modifier * int(line[1:])) + 100) % 100
+        direction_modifier = 1 if line.startswith("R") else -1
+        position = (position + (direction_modifier * int(line[1:]))) % 100
 
-        if startingVal == 0:
-            timesOnZero += 1
+        if position == 0:
+            zero_hits += 1
 
-    print(
-        {
-            "Day": 1,
-            "Part": 1,
-            "Value": timesOnZero,
-        }
-    )
+    return zero_hits
 
 
-def partTwo(defaultContentPath):
-    lines = []
-
-    with open(defaultContentPath) as f:
-        for line in f:
-            lines.append(line.strip())
-
-    startingVal = 50
-    timesOnZero = 0
+def part_two(lines: list[str]) -> int:
+    position = 50
+    zero_hits = 0
 
     for line in lines:
         # First, strip out all of the full cycles:
-        clicks, remainder = divmod(int(line[1:]), 100)
+        full_rotations, partial_rotation_amount = divmod(int(line[1:]), 100)
 
         # ...after adding them to the number of times past zero:
-        timesOnZero += clicks
+        zero_hits += full_rotations
 
         # Now we're good to deal with the actual spinning
-        modifier = 1 if line.startswith("R") else -1
+        direction_modifier = 1 if line.startswith("R") else -1
 
-        tempVal = startingVal + (modifier * remainder)
+        new_position_with_overflow = position + (
+            direction_modifier * partial_rotation_amount
+        )
 
         # Check if we crossed zero in this last bit, but exclude if we started on zero, since we would've counted this already
-        if startingVal != 0 and ((tempVal >= 100) or (tempVal <= 0)):
-            timesOnZero += 1
+        if position != 0 and not (0 < new_position_with_overflow < 100):
+            zero_hits += 1
 
-        startingVal = (tempVal + 100) % 100
+        position = new_position_with_overflow % 100
 
-    print({"Day": 1, "Part": 2, "Value": timesOnZero})
+    return zero_hits
 
 
 if __name__ == "__main__":
     main()
-
-    exit(0)
