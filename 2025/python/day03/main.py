@@ -9,8 +9,9 @@ def main():
     path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_INPUT
     lines = [line.strip() for line in path.read_text().splitlines() if line.strip()]
 
-    print({"Day": 2, "Part": 1, "Value": part_one(lines)})
-    print({"Day": 2, "Part": 2, "Value": part_two(lines)})
+    print({"Day": 3, "Part": 1, "Value": part_one(lines)})
+    print({"Day": 3, "Part": 2, "Value": part_two(lines)})
+
 
 def largest_subsequence(s: str, k: int) -> str:
     result = []
@@ -37,15 +38,15 @@ def part_one(lines: list[str]) -> int:
     sum_of_maxes = 0
     for line in lines:
         sum_of_maxes += int(largest_subsequence(line, 2))
-        
+
     return sum_of_maxes
+
 
 def part_two(lines: list[str]) -> int:
     sum_of_maxes = 0
     for line in lines:
         sum_of_maxes += int(largest_subsequence(line, 12))
     return sum_of_maxes
-
 
 
 if __name__ == "__main__":
