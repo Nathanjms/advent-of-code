@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
-from dataclasses import dataclass
-from collections import deque
+from collections import defaultdict
 
 
 SCRIPT_DIR = Path(__file__).parent
@@ -52,63 +51,33 @@ def part_one(grid: list[list[str]]) -> int:
     return number_of_splits
 
 
-@dataclass
-class State:
-    beam_idx: int
-    grid_row_idx: int
-    path: str
+def part_two(grid):
+    rows = len(grid)
+    cols = len(grid[0])
 
+    # Find S
+    start_col = grid[0].index("S")
 
-def part_two(grid: list[list[str]]) -> int:
-    # Init with the location just in one place
-    queue: deque[State] = deque()
-    start = grid[0].index("S")
-    num_timelines = 0
-    visited: set[tuple[int, str]] = set()
+    # states[row][col] = timeline_count at that position
+    curr = {start_col: 1}
 
-    # Init with the second line
-    queue.append(State(beam_idx=start, grid_row_idx=0, path=str(start)))
+    for r in range(rows):
+        next_row = defaultdict(int)
+        row = grid[r]
 
-    while queue:
-        state = queue.popleft()
-        # Are we on the last line?
-        if state.grid_row_idx == len(grid):
-            num_timelines += 1
-            continue
+        for col, count in curr.items():
+            if row[col] == "^":  # splitter
+                if col > 0:
+                    next_row[col - 1] += count
+                if col < cols - 1:
+                    next_row[col + 1] += count
+            else:  # empty
+                next_row[col] += count
 
-        state_key = (state.beam_idx, state.path)
-        if (state_key) in visited:
-            continue
+        curr = next_row
 
-        print(state.grid_row_idx)
-
-        visited.add(state_key)
-
-        if grid[state.grid_row_idx][state.beam_idx] != "^":
-            # We just keep goin' down, no new timelines
-            queue.append(
-                State(
-                    beam_idx=state.beam_idx,
-                    grid_row_idx=state.grid_row_idx + 1,
-                    path=state.path + str(state.beam_idx),
-                )
-            )
-            continue
-        else:
-            new_locations = [state.beam_idx - 1, state.beam_idx + 1]
-            for new_loc in new_locations:
-                if 0 <= new_loc < len(grid[0]):
-                    # Valid state, add to the queue!
-                    # num_timelines += 1
-                    queue.append(
-                        State(
-                            beam_idx=new_loc,
-                            grid_row_idx=state.grid_row_idx + 1,
-                            path=state.path + str(new_loc),
-                        )
-                    )
-
-    return num_timelines
+    # final number of timelines
+    return sum(curr.values())
 
 
 if __name__ == "__main__":
