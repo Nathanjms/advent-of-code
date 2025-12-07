@@ -57,7 +57,7 @@ _Tip: Add '0' to the start of the day number if it is less than 10, e.g. `01` in
 Run
 
 ```bash
-bash createGoDay.sh <day> <path>
+bash createGoOrPyDay.sh <day> <path> go
 ```
 
 to create the template for a new day in Go. To do this, ensure that there is a `dayx` template folder in the destination.
@@ -72,3 +72,20 @@ _Tip: Add '0' to the start of the day number if it is less than 10, e.g. `01` in
 3. Add this to the `go.work` file in the root
 4. Add the dayx folder to enable the template to work
 5. Run `bash createGoDay.sh 01 ./2017/go`
+
+### Python
+
+Run
+
+```bash
+bash createGoOrPyDay.sh <day> <path> py
+```
+
+eg:
+
+```bash
+bash ./createGoOrPyDay.sh 08 ./2025/python py
+```
+
+to create the template for a new day in Go. To do this, ensure that there is a `dayx` template folder in the destination.
+_Tip: Add '0' to the start of the day number if it is less than 10, e.g. `01` instead of `1`, for better ordering!_

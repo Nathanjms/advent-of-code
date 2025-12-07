@@ -35,15 +35,18 @@ fi
 
 cp -r $path/dayx $path/day$day
 
-# Go into the file main.go.stub and change "0," to "$day,", but without the leading 0
+# File format is the third argument or falls back to go:
+file_format=${3:-go}
+
+# Go into the file main.$file_format.stub and change "0," to "$day,", but without the leading 0
 if [ "$(uname)" == "Darwin" ]; then
-    sed -i '' "s/0,/$(echo $day | sed 's/^0*//'),/g" $path/day$day/main.go.stub
+    sed -i '' "s/0,/$(echo $day | sed 's/^0*//'),/g" $path/day$day/main.$file_format.stub
 else
-    sed -i "s/0,/$(echo $day | sed 's/^0*//'),/g" $path/day$day/main.go.stub
+    sed -i "s/0,/$(echo $day | sed 's/^0*//'),/g" $path/day$day/main.$file_format.stub
 fi
 
-#  Then change the name of the file main.go.stub to main.go
-mv $path/day$day/main.go.stub $path/day$day/main.go
+#  Then change the name of the file main.$file_format.stub to main.$file_format
+mv $path/day$day/main.$file_format.stub $path/day$day/main.$file_format
 
 # Done!
 echo "Done!"
