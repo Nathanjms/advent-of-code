@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 from collections import defaultdict
+from functools import lru_cache
 
 
 SCRIPT_DIR = Path(__file__).parent
@@ -32,7 +33,6 @@ def part_one(grid: list[list[str]]) -> int:
         new_beam_locations = set()
         # Do any beams now spit?
         for beam_idx in beam_locations:
-            print(beam_idx)
             if beam_idx in splitters:
                 new_locations = [beam_idx - 1, beam_idx + 1]
                 for new_loc in new_locations:
@@ -51,33 +51,32 @@ def part_one(grid: list[list[str]]) -> int:
     return number_of_splits
 
 
-def part_two(grid):
-    rows = len(grid)
-    cols = len(grid[0])
-
-    # Find S
+def part_two(grid: list[list[str]]):
     start_col = grid[0].index("S")
 
-    # states[row][col] = timeline_count at that position
-    curr = {start_col: 1}
+    @lru_cache
+    def ways(row_idx, start_col_idx):
+        # Out of bounds means invalid and so 0:
+        if start_col_idx < 0 or start_col_idx >= len(grid):
+            return 0
 
-    for r in range(rows):
-        next_row = defaultdict(int)
-        row = grid[r]
+        # On the last row means one complete timeline:
+        if row_idx == len(grid):
+            return 1
 
-        for col, count in curr.items():
-            if row[col] == "^":  # splitter
-                if col > 0:
-                    next_row[col - 1] += count
-                if col < cols - 1:
-                    next_row[col + 1] += count
-            else:  # empty
-                next_row[col] += count
+        # Otherwise, we're still traversing downwards, so let's do the checks of whether we're on a splitter or not!
+        cell = grid[row_idx][start_col_idx]
 
-        curr = next_row
+        if cell != "^":
+            # We continue just straight downwards:
+            return ways(row_idx + 1, start_col_idx)
+        else:
+            # We now have two possibilities: left and right, so sum these. We check if they're out of bounds at the top, so no need here
+            return ways(row_idx + 1, start_col_idx - 1) + ways(
+                row_idx + 1, start_col_idx + 1
+            )
 
-    # final number of timelines
-    return sum(curr.values())
+    return ways(1, start_col)
 
 
 if __name__ == "__main__":
