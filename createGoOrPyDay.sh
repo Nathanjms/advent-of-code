@@ -33,10 +33,21 @@ if ! [ -d "$path/dayx" ]; then
     exit 1
 fi
 
-cp -r $path/dayx $path/day$day
+if ! [ -z "$3" ]; then
+    echo "Format: $3"
+    file_format=$3
+else
+    echo -n "Format (py or go):"
+    read file_format
+    echo
 
-# File format is the third argument or falls back to go:
-file_format=${3:-go}
+    if [ -z "$file_format" ]; then
+        echo "No file_format given, aborting..."
+        exit 1
+    fi
+fi
+
+cp -r $path/dayx $path/day$day
 
 # Go into the file main.$file_format.stub and change "0," to "$day,", but without the leading 0
 if [ "$(uname)" == "Darwin" ]; then
