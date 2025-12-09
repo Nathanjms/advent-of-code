@@ -69,7 +69,7 @@ export function partTwo(input = null) {
    * lets use the Point In Polygon, Ray Casting Algorithm to solve this.
    * https://en.wikipedia.org/wiki/Point_in_polygon
    * For each point, count in one direction to the edge, the number of times the boundary is passed.
-   * If even, the point is INSIDE, if odd, OUTSIDE.
+   * If even, the point is OUTSIDE, if odd, INSIDE.
    * We will go to the right.
    * The slight difficulty comes from being able to go in-between pipes.
    * This means for F---7 and L---J, this can be gone around and so does not count as a border
